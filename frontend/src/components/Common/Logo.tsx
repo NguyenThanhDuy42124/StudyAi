@@ -1,11 +1,6 @@
 import { Link } from "@tanstack/react-router"
-
-import { useTheme } from "@/components/theme-provider"
+import { Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
-import icon from "/assets/images/fastapi-icon.svg"
-import iconLight from "/assets/images/fastapi-icon-light.svg"
-import logo from "/assets/images/fastapi-logo.svg"
-import logoLight from "/assets/images/fastapi-logo-light.svg"
 
 interface LogoProps {
   variant?: "full" | "icon" | "responsive"
@@ -18,43 +13,38 @@ export function Logo({
   className,
   asLink = true,
 }: LogoProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
+  const content = (
+    <div className={cn("flex items-center gap-3 select-none", className)}>
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
+        <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.5} />
+      </div>
 
-  const fullLogo = isDark ? logoLight : logo
-  const iconLogo = isDark ? iconLight : icon
-
-  const content =
-    variant === "responsive" ? (
-      <>
-        <img
-          src={fullLogo}
-          alt="FastAPI"
-          className={cn(
-            "h-6 w-auto group-data-[collapsible=icon]:hidden",
-            className,
-          )}
-        />
-        <img
-          src={iconLogo}
-          alt="FastAPI"
-          className={cn(
-            "size-5 hidden group-data-[collapsible=icon]:block",
-            className,
-          )}
-        />
-      </>
-    ) : (
-      <img
-        src={variant === "full" ? fullLogo : iconLogo}
-        alt="FastAPI"
-        className={cn(variant === "full" ? "h-6 w-auto" : "size-5", className)}
-      />
-    )
+      {variant !== "icon" && (
+        <div className={cn("flex flex-col min-w-0", variant === "responsive" && "group-data-[collapsible=icon]:hidden")}>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-base tracking-tight font-sans text-foreground">
+              Study<span className="text-primary font-bold">AI</span>
+            </span>
+            <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[8px] font-mono font-medium text-primary border border-primary/20">
+              PRO
+            </span>
+          </div>
+          <span className="text-[9px] text-muted-foreground font-mono truncate uppercase tracking-widest mt-0.5">
+            Workspace
+          </span>
+        </div>
+      )}
+    </div>
+  )
 
   if (!asLink) {
     return content
   }
 
-  return <Link to="/">{content}</Link>
+  return (
+    <Link to="/" className="inline-flex items-center">
+      {content}
+    </Link>
+  )
 }
+

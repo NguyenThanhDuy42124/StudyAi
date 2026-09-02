@@ -20,6 +20,7 @@ const ICON_MAP: Record<Theme, LucideIcon> = {
   system: Monitor,
   light: Sun,
   dark: Moon,
+  grey: Moon,
 }
 
 export const SidebarAppearance = () => {
@@ -55,6 +56,13 @@ export const SidebarAppearance = () => {
           >
             <Moon className="mr-2 h-4 w-4" />
             Dark
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            data-testid="grey-mode"
+            onClick={() => setTheme("grey")}
+          >
+            <Monitor className="mr-2 h-4 w-4 opacity-50" />
+            Grey
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTheme("system")}>
             <Monitor className="mr-2 h-4 w-4" />
@@ -93,6 +101,13 @@ export const Appearance = () => {
           >
             <Moon className="mr-2 h-4 w-4" />
             Dark
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            data-testid="grey-mode"
+            onClick={() => setTheme("grey")}
+          >
+            <Monitor className="mr-2 h-4 w-4 opacity-50" />
+            Grey
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTheme("system")}>
             <Monitor className="mr-2 h-4 w-4" />

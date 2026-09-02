@@ -5,6 +5,16 @@ export type ClientOptions = {
 };
 
 /**
+ * Body_documents-upload_document
+ */
+export type Body_documents_upload_document = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * Body_login-login_access_token
  */
 export type Body_login_login_access_token = {
@@ -32,6 +42,114 @@ export type Body_login_login_access_token = {
      * Client Secret
      */
     client_secret?: string | null;
+};
+
+/**
+ * ChatRequest
+ */
+export type ChatRequest = {
+    /**
+     * Conversation Id
+     */
+    conversation_id?: string | null;
+    /**
+     * Message
+     */
+    message: string;
+};
+
+/**
+ * ConversationPublic
+ */
+export type ConversationPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Type
+     */
+    type: string;
+    /**
+     * Document Id
+     */
+    document_id: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * DocumentPublic
+ */
+export type DocumentPublic = {
+    /**
+     * Filename
+     */
+    filename: string;
+    /**
+     * File Path
+     */
+    file_path: string;
+    /**
+     * File Type
+     */
+    file_type: string;
+    /**
+     * File Size Bytes
+     */
+    file_size_bytes?: number;
+    /**
+     * Status
+     */
+    status?: string;
+    /**
+     * Chunk Count
+     */
+    chunk_count?: number;
+    /**
+     * Qdrant Collection
+     */
+    qdrant_collection?: string;
+    /**
+     * Error Message
+     */
+    error_message?: string | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * User Id
+     */
+    user_id: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * FeedbackRequest
+ */
+export type FeedbackRequest = {
+    /**
+     * Rating
+     */
+    rating: string;
+    /**
+     * Comment
+     */
+    comment?: string | null;
 };
 
 /**
@@ -113,13 +231,39 @@ export type ItemsPublic = {
 };
 
 /**
- * Message
+ * MessagePublic
  */
-export type Message = {
+export type MessagePublic = {
     /**
-     * Message
+     * Id
      */
-    message: string;
+    id: string;
+    /**
+     * Role
+     */
+    role: string;
+    /**
+     * Content
+     */
+    content: string;
+    /**
+     * Sources
+     */
+    sources: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Intent
+     */
+    intent: string | null;
+    /**
+     * Model Used
+     */
+    model_used: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -156,6 +300,44 @@ export type PrivateUserCreate = {
      * Is Verified
      */
     is_verified?: boolean;
+};
+
+/**
+ * QuizPublic
+ */
+export type QuizPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Document Id
+     */
+    document_id: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Question Count
+     */
+    question_count: number;
+    /**
+     * Difficulty
+     */
+    difficulty: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Error Message
+     */
+    error_message?: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -342,6 +524,56 @@ export type ValidationError = {
     };
 };
 
+/**
+ * Message
+ */
+export type app__models__conversation__Message = {
+    /**
+     * Id
+     */
+    id?: string;
+    /**
+     * Conversation Id
+     */
+    conversation_id: string;
+    /**
+     * Role
+     */
+    role: string;
+    /**
+     * Content
+     */
+    content: string;
+    /**
+     * Sources
+     */
+    sources?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Intent
+     */
+    intent?: string | null;
+    /**
+     * Model Used
+     */
+    model_used?: string | null;
+    /**
+     * Created At
+     */
+    created_at?: string;
+};
+
+/**
+ * Message
+ */
+export type app__models__core__Message = {
+    /**
+     * Message
+     */
+    message: string;
+};
+
 export type loginLoginAccessTokenData = {
     body: Body_login_login_access_token;
     path?: never;
@@ -408,7 +640,7 @@ export type loginRecoverPasswordResponses = {
     /**
      * Successful Response
      */
-    200: Message;
+    200: app__models__core__Message;
 };
 
 export type loginRecoverPasswordResponse = loginRecoverPasswordResponses[keyof loginRecoverPasswordResponses];
@@ -433,7 +665,7 @@ export type loginResetPasswordResponses = {
     /**
      * Successful Response
      */
-    200: Message;
+    200: app__models__core__Message;
 };
 
 export type loginResetPasswordResponse = loginResetPasswordResponses[keyof loginResetPasswordResponses];
@@ -481,7 +713,7 @@ export type usersReadUsersData = {
          */
         limit?: number;
     };
-    url: '/api/v1/users/';
+    url: '/api/v1/users/users/';
 };
 
 export type usersReadUsersErrors = {
@@ -506,7 +738,7 @@ export type usersCreateUserData = {
     body: UserCreate;
     path?: never;
     query?: never;
-    url: '/api/v1/users/';
+    url: '/api/v1/users/users/';
 };
 
 export type usersCreateUserErrors = {
@@ -531,14 +763,14 @@ export type usersDeleteUserMeData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/users/me';
+    url: '/api/v1/users/users/me';
 };
 
 export type usersDeleteUserMeResponses = {
     /**
      * Successful Response
      */
-    200: Message;
+    200: app__models__conversation__Message;
 };
 
 export type usersDeleteUserMeResponse = usersDeleteUserMeResponses[keyof usersDeleteUserMeResponses];
@@ -547,7 +779,7 @@ export type usersReadUserMeData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/users/me';
+    url: '/api/v1/users/users/me';
 };
 
 export type usersReadUserMeResponses = {
@@ -563,7 +795,7 @@ export type usersUpdateUserMeData = {
     body: UserUpdateMe;
     path?: never;
     query?: never;
-    url: '/api/v1/users/me';
+    url: '/api/v1/users/users/me';
 };
 
 export type usersUpdateUserMeErrors = {
@@ -588,7 +820,7 @@ export type usersUpdatePasswordMeData = {
     body: UpdatePassword;
     path?: never;
     query?: never;
-    url: '/api/v1/users/me/password';
+    url: '/api/v1/users/users/me/password';
 };
 
 export type usersUpdatePasswordMeErrors = {
@@ -604,7 +836,7 @@ export type usersUpdatePasswordMeResponses = {
     /**
      * Successful Response
      */
-    200: Message;
+    200: app__models__conversation__Message;
 };
 
 export type usersUpdatePasswordMeResponse = usersUpdatePasswordMeResponses[keyof usersUpdatePasswordMeResponses];
@@ -613,7 +845,7 @@ export type usersRegisterUserData = {
     body: UserRegister;
     path?: never;
     query?: never;
-    url: '/api/v1/users/signup';
+    url: '/api/v1/users/users/signup';
 };
 
 export type usersRegisterUserErrors = {
@@ -643,7 +875,7 @@ export type usersDeleteUserData = {
         user_id: string;
     };
     query?: never;
-    url: '/api/v1/users/{user_id}';
+    url: '/api/v1/users/users/{user_id}';
 };
 
 export type usersDeleteUserErrors = {
@@ -659,7 +891,7 @@ export type usersDeleteUserResponses = {
     /**
      * Successful Response
      */
-    200: Message;
+    200: app__models__conversation__Message;
 };
 
 export type usersDeleteUserResponse = usersDeleteUserResponses[keyof usersDeleteUserResponses];
@@ -673,7 +905,7 @@ export type usersReadUserByIdData = {
         user_id: string;
     };
     query?: never;
-    url: '/api/v1/users/{user_id}';
+    url: '/api/v1/users/users/{user_id}';
 };
 
 export type usersReadUserByIdErrors = {
@@ -703,7 +935,7 @@ export type usersUpdateUserData = {
         user_id: string;
     };
     query?: never;
-    url: '/api/v1/users/{user_id}';
+    url: '/api/v1/users/users/{user_id}';
 };
 
 export type usersUpdateUserErrors = {
@@ -724,6 +956,72 @@ export type usersUpdateUserResponses = {
 
 export type usersUpdateUserResponse = usersUpdateUserResponses[keyof usersUpdateUserResponses];
 
+export type profileReadUserMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/profile/me';
+};
+
+export type profileReadUserMeResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserPublic;
+};
+
+export type profileReadUserMeResponse = profileReadUserMeResponses[keyof profileReadUserMeResponses];
+
+export type profileUpdateUserMeData = {
+    body: UserUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/profile/me';
+};
+
+export type profileUpdateUserMeErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type profileUpdateUserMeError = profileUpdateUserMeErrors[keyof profileUpdateUserMeErrors];
+
+export type profileUpdateUserMeResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserPublic;
+};
+
+export type profileUpdateUserMeResponse = profileUpdateUserMeResponses[keyof profileUpdateUserMeResponses];
+
+export type profileUpdatePasswordMeData = {
+    body: UpdatePassword;
+    path?: never;
+    query?: never;
+    url: '/api/v1/profile/me/password';
+};
+
+export type profileUpdatePasswordMeErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type profileUpdatePasswordMeError = profileUpdatePasswordMeErrors[keyof profileUpdatePasswordMeErrors];
+
+export type profileUpdatePasswordMeResponses = {
+    /**
+     * Response Profile-Update Password Me
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type utilsTestEmailData = {
     body?: never;
     path?: never;
@@ -733,7 +1031,7 @@ export type utilsTestEmailData = {
          */
         email_to: string;
     };
-    url: '/api/v1/utils/test-email/';
+    url: '/api/v1/utils/utils/test-email/';
 };
 
 export type utilsTestEmailErrors = {
@@ -749,7 +1047,7 @@ export type utilsTestEmailResponses = {
     /**
      * Successful Response
      */
-    201: Message;
+    201: app__models__core__Message;
 };
 
 export type utilsTestEmailResponse = utilsTestEmailResponses[keyof utilsTestEmailResponses];
@@ -758,7 +1056,7 @@ export type utilsHealthCheckData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/utils/health-check/';
+    url: '/api/v1/utils/utils/health-check/';
 };
 
 export type utilsHealthCheckResponses = {
@@ -785,7 +1083,7 @@ export type itemsReadItemsData = {
          */
         limit?: number;
     };
-    url: '/api/v1/items/';
+    url: '/api/v1/items/items/';
 };
 
 export type itemsReadItemsErrors = {
@@ -810,7 +1108,7 @@ export type itemsCreateItemData = {
     body: ItemCreate;
     path?: never;
     query?: never;
-    url: '/api/v1/items/';
+    url: '/api/v1/items/items/';
 };
 
 export type itemsCreateItemErrors = {
@@ -840,7 +1138,7 @@ export type itemsDeleteItemData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/items/{id}';
+    url: '/api/v1/items/items/{id}';
 };
 
 export type itemsDeleteItemErrors = {
@@ -856,7 +1154,7 @@ export type itemsDeleteItemResponses = {
     /**
      * Successful Response
      */
-    200: Message;
+    200: app__models__core__Message;
 };
 
 export type itemsDeleteItemResponse = itemsDeleteItemResponses[keyof itemsDeleteItemResponses];
@@ -870,7 +1168,7 @@ export type itemsReadItemData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/items/{id}';
+    url: '/api/v1/items/items/{id}';
 };
 
 export type itemsReadItemErrors = {
@@ -900,7 +1198,7 @@ export type itemsUpdateItemData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/items/{id}';
+    url: '/api/v1/items/items/{id}';
 };
 
 export type itemsUpdateItemErrors = {
@@ -920,6 +1218,370 @@ export type itemsUpdateItemResponses = {
 };
 
 export type itemsUpdateItemResponse = itemsUpdateItemResponses[keyof itemsUpdateItemResponses];
+
+export type documentsReadDocumentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/documents/';
+};
+
+export type documentsReadDocumentsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type documentsReadDocumentsError = documentsReadDocumentsErrors[keyof documentsReadDocumentsErrors];
+
+export type documentsReadDocumentsResponses = {
+    /**
+     * Response Documents-Read Documents
+     *
+     * Successful Response
+     */
+    200: Array<DocumentPublic>;
+};
+
+export type documentsReadDocumentsResponse = documentsReadDocumentsResponses[keyof documentsReadDocumentsResponses];
+
+export type documentsUploadDocumentData = {
+    body: Body_documents_upload_document;
+    path?: never;
+    query?: never;
+    url: '/api/v1/documents/';
+};
+
+export type documentsUploadDocumentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type documentsUploadDocumentError = documentsUploadDocumentErrors[keyof documentsUploadDocumentErrors];
+
+export type documentsUploadDocumentResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentPublic;
+};
+
+export type documentsUploadDocumentResponse = documentsUploadDocumentResponses[keyof documentsUploadDocumentResponses];
+
+export type documentsDeleteDocumentData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/documents/{id}';
+};
+
+export type documentsDeleteDocumentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type documentsDeleteDocumentError = documentsDeleteDocumentErrors[keyof documentsDeleteDocumentErrors];
+
+export type documentsDeleteDocumentResponses = {
+    /**
+     * Response Documents-Delete Document
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type documentsReadDocumentData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/documents/{id}';
+};
+
+export type documentsReadDocumentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type documentsReadDocumentError = documentsReadDocumentErrors[keyof documentsReadDocumentErrors];
+
+export type documentsReadDocumentResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentPublic;
+};
+
+export type documentsReadDocumentResponse = documentsReadDocumentResponses[keyof documentsReadDocumentResponses];
+
+export type chatStreamChatData = {
+    body: ChatRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/chat/stream';
+};
+
+export type chatStreamChatErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatStreamChatError = chatStreamChatErrors[keyof chatStreamChatErrors];
+
+export type chatStreamChatResponses = {
+    /**
+     * Response Chat-Stream Chat
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type chatGetConversationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/chat/conversations';
+};
+
+export type chatGetConversationsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatGetConversationsError = chatGetConversationsErrors[keyof chatGetConversationsErrors];
+
+export type chatGetConversationsResponses = {
+    /**
+     * Response Chat-Get Conversations
+     *
+     * Successful Response
+     */
+    200: Array<ConversationPublic>;
+};
+
+export type chatGetConversationsResponse = chatGetConversationsResponses[keyof chatGetConversationsResponses];
+
+export type chatGetMessagesData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/chat/conversations/{id}/messages';
+};
+
+export type chatGetMessagesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatGetMessagesError = chatGetMessagesErrors[keyof chatGetMessagesErrors];
+
+export type chatGetMessagesResponses = {
+    /**
+     * Response Chat-Get Messages
+     *
+     * Successful Response
+     */
+    200: Array<MessagePublic>;
+};
+
+export type chatGetMessagesResponse = chatGetMessagesResponses[keyof chatGetMessagesResponses];
+
+export type chatSubmitFeedbackData = {
+    body: FeedbackRequest;
+    path: {
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/v1/chat/messages/{message_id}/feedback';
+};
+
+export type chatSubmitFeedbackErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatSubmitFeedbackError = chatSubmitFeedbackErrors[keyof chatSubmitFeedbackErrors];
+
+export type chatSubmitFeedbackResponses = {
+    /**
+     * Response Chat-Submit Feedback
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type quizGenerateQuizData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Document Id
+         */
+        document_id: string;
+    };
+    url: '/api/v1/quiz/generate';
+};
+
+export type quizGenerateQuizErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type quizGenerateQuizError = quizGenerateQuizErrors[keyof quizGenerateQuizErrors];
+
+export type quizGenerateQuizResponses = {
+    /**
+     * Successful Response
+     */
+    200: QuizPublic;
+};
+
+export type quizGenerateQuizResponse = quizGenerateQuizResponses[keyof quizGenerateQuizResponses];
+
+export type quizListQuizzesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/quiz/';
+};
+
+export type quizListQuizzesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type quizListQuizzesError = quizListQuizzesErrors[keyof quizListQuizzesErrors];
+
+export type quizListQuizzesResponses = {
+    /**
+     * Response Quiz-List Quizzes
+     *
+     * Successful Response
+     */
+    200: Array<QuizPublic>;
+};
+
+export type quizListQuizzesResponse = quizListQuizzesResponses[keyof quizListQuizzesResponses];
+
+export type adminCheckHealthData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/health';
+};
+
+export type adminCheckHealthResponses = {
+    /**
+     * Response Admin-Check Health
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type adminGetFeedbackData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Rating
+         */
+        rating?: string | null;
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/admin/feedback';
+};
+
+export type adminGetFeedbackErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type adminGetFeedbackError = adminGetFeedbackErrors[keyof adminGetFeedbackErrors];
+
+export type adminGetFeedbackResponses = {
+    /**
+     * Response Admin-Get Feedback
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;
@@ -945,3 +1607,149 @@ export type privateCreateUserResponses = {
 };
 
 export type privateCreateUserResponse = privateCreateUserResponses[keyof privateCreateUserResponses];
+
+export type AIModelConfigPublic = {
+    id: string;
+    name: string;
+    provider: string;
+    model_id: string;
+    base_url?: string | null;
+    is_active: boolean;
+    is_embedding: boolean;
+    created_at: string;
+};
+
+export type AIModelConfigCreate = {
+    name: string;
+    provider: string;
+    model_id: string;
+    base_url?: string | null;
+    api_key?: string | null;
+    is_active?: boolean;
+    is_embedding?: boolean;
+};
+
+export type SystemPromptPublic = {
+    id: string;
+    name: string;
+    content: string;
+    is_active: boolean;
+    created_at: string;
+};
+
+export type SystemPromptCreate = {
+    name: string;
+    content: string;
+    is_active?: boolean;
+};
+
+export type adminAiReadModelsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        skip?: number;
+        limit?: number;
+    };
+    url: '/api/v1/admin/ai/models';
+};
+
+export type adminAiReadModelsResponses = {
+    200: Array<AIModelConfigPublic>;
+};
+
+export type adminAiCreateModelData = {
+    body: AIModelConfigCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/ai/models';
+};
+
+export type adminAiCreateModelResponses = {
+    200: AIModelConfigPublic;
+};
+
+export type adminAiDeleteModelData = {
+    body?: never;
+    path: {
+        model_id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/ai/models/{model_id}';
+};
+
+export type adminAiDeleteModelResponses = {
+    200: { message: string };
+};
+
+export type adminAiReadPromptsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        skip?: number;
+        limit?: number;
+    };
+    url: '/api/v1/admin/ai/prompts';
+};
+
+export type adminAiReadPromptsResponses = {
+    200: Array<SystemPromptPublic>;
+};
+
+export type adminAiCreatePromptData = {
+    body: SystemPromptCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/ai/prompts';
+};
+
+export type adminAiCreatePromptResponses = {
+    200: SystemPromptPublic;
+};
+
+export type adminAiDeletePromptData = {
+    body?: never;
+    path: {
+        prompt_id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/ai/prompts/{prompt_id}';
+};
+
+export type adminAiDeletePromptResponses = {
+    200: { message: string };
+};
+
+export type QuestionPublic = {
+    id: string;
+    order_index: number;
+    question_text: string;
+    options: Record<string, string>;
+    correct_answer: string;
+    explanation?: string | null;
+};
+
+export type quizGetQuizData = {
+    body?: never;
+    path: {
+        quiz_id: string;
+    };
+    query?: never;
+    url: '/api/v1/quiz/{quiz_id}';
+};
+
+export type quizGetQuizResponses = {
+    200: QuizPublic;
+};
+
+export type quizGetQuizQuestionsData = {
+    body?: never;
+    path: {
+        quiz_id: string;
+    };
+    query?: never;
+    url: '/api/v1/quiz/{quiz_id}/questions';
+};
+
+export type quizGetQuizQuestionsResponses = {
+    200: Array<QuestionPublic>;
+};

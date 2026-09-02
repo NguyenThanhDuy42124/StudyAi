@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Student Assistant — Brainstorm Board</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22253a; --border: #2e3147;
+    --accent: #6c63ff; --accent2: #00d4aa; --accent3: #ff6b6b; --accent4: #ffd166; --accent5: #f4a261;
+    --text: #e8eaf6; --text-muted: #8b90b8;
+    --font: 'Segoe UI', system-ui, sans-serif; --mono: 'Cascadia Code','Fira Code',monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; }
+
+  header { background: linear-gradient(135deg,#1a1d27,#0f1117); border-bottom: 1px solid var(--border); padding: 2rem 3rem; }
+  .header-row { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1rem; }
+  .logo { width: 48px; height: 48px; background: linear-gradient(135deg,var(--accent),var(--accent2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+  .header-text h1 { font-size: 1rem; font-weight: 700; color: var(--text-muted); }
+  .header-text h2 { font-size: 1.15rem; font-weight: 800; line-height: 1.35; }
+  .status-badge { margin-left: auto; background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.4); color: var(--accent2); padding: 4px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+  .objective-bar { background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.2); border-radius: 10px; padding: 0.9rem 1.25rem; font-size: 0.87rem; color: var(--text-muted); }
+  .objective-bar strong { color: var(--accent2); }
+
+  .page { max-width: 1300px; margin: 0 auto; padding: 2.5rem 3rem; }
+  section { margin-bottom: 2.5rem; }
+  section > h2 { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  section > h2::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+  @media(max-width:900px){ .grid-3,.grid-4{grid-template-columns:1fr 1fr;} .grid-2{grid-template-columns:1fr;} }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+  .card-title { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
+
+  /* ── VPS Verdict ── */
+  .vps-verdict {
+    background: linear-gradient(135deg, rgba(0,212,170,0.1), rgba(108,99,255,0.07));
+    border: 1px solid rgba(0,212,170,0.4);
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    display: flex; gap: 1.25rem; align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+  .vps-verdict .icon { font-size: 2.2rem; flex-shrink: 0; }
+  .vps-verdict h3 { font-size: 1.15rem; font-weight: 800; color: var(--accent2); margin-bottom: 0.3rem; }
+  .vps-verdict p  { color: var(--text-muted); font-size: 0.87rem; line-height: 1.55; }
+
+  /* ── RAM breakdown ── */
+  .ram-bar-container { margin: 0.4rem 0 0.75rem; }
+  .ram-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.45rem; }
+  .ram-service { font-size: 0.82rem; width: 140px; flex-shrink: 0; font-weight: 600; }
+  .ram-bar-wrap { flex: 1; background: var(--surface2); border-radius: 999px; height: 8px; overflow: hidden; }
+  .ram-bar { height: 100%; border-radius: 999px; }
+  .ram-val { font-size: 0.78rem; font-family: var(--mono); color: var(--text-muted); width: 70px; text-align: right; flex-shrink: 0; }
+  .bar-teal   { background: var(--accent2); }
+  .bar-purple { background: var(--accent); }
+  .bar-yellow { background: var(--accent4); }
+  .bar-orange { background: var(--accent5); }
+  .bar-gray   { background: var(--text-muted); }
+  .bar-red    { background: var(--accent3); }
+  .ram-total  { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .ram-total .ram-service { color: var(--text); }
+  .ram-total .ram-val { color: var(--accent2); font-weight: 700; }
+
+  /* ── Storage breakdown ── */
+  .storage-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.6rem; }
+  .storage-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+  .storage-label { font-size: 0.82rem; color: var(--text-muted); }
+  .storage-val   { font-size: 0.88rem; font-weight: 700; font-family: var(--mono); color: var(--accent4); }
+  .storage-total { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.3); border-radius: 8px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; margin-top: 0.4rem; }
+  .storage-total .storage-label { color: var(--text); font-weight: 700; }
+  .storage-total .storage-val   { color: var(--accent2); }
+
+  /* ── Spec cards ── */
+  .spec-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; }
+  .spec-val  { font-size: 2rem; font-weight: 800; color: var(--accent2); line-height: 1; }
+  .spec-unit { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+  .spec-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .spec-note strong { color: var(--accent4); }
+
+  /* ── Resolved banners ── */
+  .resolved-banner { background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.25); border-radius: 10px; padding: 1rem 1.4rem; display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.6rem; }
+  .resolved-banner .rb-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+  .resolved-banner h4 { font-size: 0.88rem; font-weight: 800; color: var(--accent2); margin-bottom: 0.15rem; }
+  .resolved-banner p  { font-size: 0.81rem; color: var(--text-muted); }
+
+  /* ── Pills ── */
+  .pill-group { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .pill { display: inline-flex; align-items: center; padding: 4px 11px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; border: 1px solid transparent; }
+  .pill.purple { background: rgba(108,99,255,0.15); border-color: rgba(108,99,255,0.35); color: #9c96ff; }
+  .pill.teal   { background: rgba(0,212,170,0.12); border-color: rgba(0,212,170,0.35); color: #00d4aa; }
+  .pill.yellow { background: rgba(255,209,102,0.12); border-color: rgba(255,209,102,0.35); color: #ffd166; }
+  .pill.gray   { background: rgba(139,144,184,0.1); border-color: rgba(139,144,184,0.25); color: var(--text-muted); }
+  .pill.orange { background: rgba(244,162,97,0.12); border-color: rgba(244,162,97,0.35); color: var(--accent5); }
+
+  pre.diagram { font-family: var(--mono); font-size: 0.82rem; color: #a5b4fc; line-height: 1.75; overflow-x: auto; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; }
+
+  /* ── Provider cards ── */
+  .provider-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; position: relative; display: flex; flex-direction: column; gap: 0.5rem; }
+  .provider-card.recommended { border-color: rgba(0,212,170,0.5); background: rgba(0,212,170,0.05); }
+  .provider-card.secondary   { border-color: rgba(108,99,255,0.4); background: rgba(108,99,255,0.05); }
+  .rec-badge { position: absolute; top: -1px; right: 14px; background: var(--accent2); color: #0f1117; font-size: 0.68rem; font-weight: 800; padding: 2px 10px; border-radius: 0 0 6px 6px; }
+  .sec-badge { position: absolute; top: -1px; right: 14px; background: var(--accent); color: #fff; font-size: 0.68rem; font-weight: 800; padding: 2px 10px; border-radius: 0 0 6px 6px; }
+  .provider-name { font-size: 1rem; font-weight: 800; }
+  .provider-sub  { font-size: 0.78rem; color: var(--text-muted); }
+  .limit-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.22rem; }
+  .limit-key { color: var(--text-muted); font-size: 0.78rem; width: 85px; flex-shrink: 0; }
+  .limit-val { font-size: 0.81rem; font-weight: 600; font-family: var(--mono); }
+  .limit-val.green  { color: var(--accent2); }
+  .limit-val.purple { color: var(--accent); }
+  .limit-val.yellow { color: var(--accent4); }
+  .use-tags { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .tag { display: inline-block; font-size: 0.71rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+  .tag.chat   { background: rgba(0,212,170,0.15); color: var(--accent2); }
+  .tag.embed  { background: rgba(108,99,255,0.15); color: var(--accent); }
+  .tag.mcq    { background: rgba(255,209,102,0.15); color: var(--accent4); }
+  .tag.backup { background: rgba(139,144,184,0.1); color: var(--text-muted); }
+
+  /* ── Lib cards ── */
+  .lib-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; text-decoration: none; color: inherit; transition: border-color 0.2s, transform 0.15s; }
+  .lib-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .lib-card.confirmed { border-color: rgba(0,212,170,0.4); background: rgba(0,212,170,0.05); }
+  .lib-name { font-weight: 700; font-size: 0.92rem; }
+  .lib-role { font-size: 0.78rem; font-weight: 600; color: var(--accent2); }
+  .lib-desc { color: var(--text-muted); font-size: 0.8rem; line-height: 1.4; }
+  .lib-url  { font-size: 0.73rem; color: var(--accent); font-family: var(--mono); }
+  .confirmed-tick { font-size: 0.68rem; font-weight: 700; color: var(--accent2); }
+
+  /* ── RAG boxes ── */
+  .rag-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .rag-box { border-radius: 12px; padding: 1.2rem; }
+  .rag-box.personal { background: rgba(108,99,255,0.07); border: 1px solid rgba(108,99,255,0.35); }
+  .rag-box.shared   { background: rgba(244,162,97,0.07); border: 1px solid rgba(244,162,97,0.35); }
+  .rag-box h3 { font-size: 0.93rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .rag-box.personal h3 { color: #a5b4fc; }
+  .rag-box.shared   h3 { color: var(--accent5); }
+  .rag-subtitle { font-size: 0.77rem; color: var(--text-muted); margin-bottom: 0.7rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
+  .rag-row { display: flex; gap: 0.6rem; font-size: 0.81rem; color: var(--text-muted); margin-bottom: 0.28rem; }
+  .rag-row .label { font-weight: 700; color: var(--text); width: 75px; flex-shrink: 0; }
+
+  /* ── decision ── */
+  .decision-item { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent4); border-radius: 8px; padding: 0.85rem 1.1rem; margin-bottom: 0.55rem; font-size: 0.86rem; }
+  .decision-item .q { font-weight: 700; margin-bottom: 0.25rem; }
+  .decision-item .a { color: var(--text-muted); font-size: 0.81rem; }
+  .decision-item.resolved { border-left-color: var(--accent2); }
+  .decision-item.resolved .q::before { content:'✓ '; color: var(--accent2); }
+  .decision-item.warn { border-left-color: var(--accent5); }
+
+  /* phase */
+  .phase-item { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 0.55rem; }
+  .phase-num { width: 26px; height: 26px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; margin-top: 3px; color: var(--text-muted); }
+  .phase-item.done   .phase-num { background: rgba(0,212,170,0.15); border-color: var(--accent2); color: var(--accent2); }
+  .phase-item.active .phase-num { background: rgba(255,209,102,0.15); border-color: var(--accent4); color: var(--accent4); }
+  .phase-name  { font-weight: 700; font-size: 0.88rem; }
+  .phase-tasks { color: var(--text-muted); font-size: 0.79rem; margin-top: 1px; }
+
+  .note { border-radius: 8px; padding: 0.85rem 1.1rem; font-size: 0.84rem; }
+  .note.yellow { background: rgba(255,209,102,0.07); border: 1px solid rgba(255,209,102,0.25); color: var(--accent4); }
+  .note.teal   { background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.25); color: var(--accent2); }
+  .note.purple { background: rgba(108,99,255,0.07); border: 1px solid rgba(108,99,255,0.3); color: #a5b4fc; }
+  .note strong { display: block; margin-bottom: 0.25rem; font-size: 0.87rem; }
+
+  /* rag step */
+  .rag-step { display: flex; gap: 1rem; margin-bottom: 0.65rem; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; background: rgba(108,99,255,0.2); border: 1px solid rgba(108,99,255,0.4); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; margin-top: 2px; }
+  .step-title { font-weight: 700; font-size: 0.87rem; margin-bottom: 0.15rem; }
+  .step-desc  { color: var(--text-muted); font-size: 0.8rem; line-height: 1.5; }
+
+  /* intent */
+  .intent-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.9rem; }
+  .intent-box { border-radius: 10px; padding: 1.1rem; border: 1px solid var(--border); background: var(--surface2); }
+  .intent-box h4 { font-size: 0.88rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .intent-box ul { color: var(--text-muted); font-size: 0.8rem; margin-left: 1rem; }
+  .intent-box li { margin-bottom: 0.25rem; }
+  .intent-box.kw h4 { color: var(--accent4); }
+  .intent-box.ai h4 { color: var(--accent); }
+
+  /* mcq */
+  .mcq-config { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; margin-bottom: 0.9rem; }
+  .mcq-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+  .mcq-box .mcq-val { font-size: 1.6rem; font-weight: 800; color: var(--accent2); }
+  .mcq-box .mcq-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+  footer { text-align: center; padding: 1.75rem; color: var(--text-muted); font-size: 0.77rem; border-top: 1px solid var(--border); margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="logo">🎓</div>
+    <div class="header-text">
+      <h1>Đề tài tốt nghiệp — AI Student Assistant</h1>
+      <h2>Xây dựng hệ thống hỗ trợ học tập thông minh ứng dụng LLM<br>trong phân tích tài liệu và tự động sinh câu hỏi trắc nghiệm</h2>
+    </div>
+    <div class="status-badge">Brainstorm — Gần chốt</div>
+  </div>
+  <div class="objective-bar">
+    <strong>Stack:</strong> FastAPI + React (ReUI + Lucide + UIverse) + Gemini API + Qdrant + PostgreSQL + Docker → Ubuntu 24.04 LTS &nbsp;|&nbsp; <strong>VPS:</strong> 4 CPU / 8GB RAM / 80GB SSD ✅
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── VPS Analysis ── -->
+  <section>
+    <h2>VPS 4 CPU / 8GB RAM / 80GB SSD — Phân tích</h2>
+
+    <div class="vps-verdict">
+      <div class="icon">✅</div>
+      <div>
+        <h3>Specs này DƯ SỨC cho hệ thống — Không cần nâng cấp</h3>
+        <p>Stack của bạn (FastAPI + PostgreSQL + Qdrant + Nginx) chỉ dùng khoảng <strong style="color:var(--accent2)">1.5–3 GB RAM</strong> khi chạy bình thường. 8GB cho phép bạn có headroom lớn, chạy thêm monitoring tools, và vẫn còn dư để scale sau. 4 CPU đủ xử lý concurrent requests cho đề tài.</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+      <!-- RAM -->
+      <div class="card">
+        <div class="card-title">Ước tính RAM sử dụng</div>
+        <div class="ram-bar-container">
+          <div class="ram-row">
+            <div class="ram-service">Ubuntu OS</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-gray" style="width:6.25%"></div></div>
+            <div class="ram-val">~500 MB</div>
+          </div>
+          <div class="ram-row">
+            <div class="ram-service">Nginx</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-gray" style="width:0.6%"></div></div>
+            <div class="ram-val">~50 MB</div>
+          </div>
+          <div class="ram-row">
+            <div class="ram-service">FastAPI</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-teal" style="width:5%"></div></div>
+            <div class="ram-val">~300–400 MB</div>
+          </div>
+          <div class="ram-row">
+            <div class="ram-service">PostgreSQL</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-purple" style="width:3.75%"></div></div>
+            <div class="ram-val">~300 MB</div>
+          </div>
+          <div class="ram-row">
+            <div class="ram-service">Qdrant</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-orange" style="width:12.5%"></div></div>
+            <div class="ram-val">~500MB–1 GB</div>
+          </div>
+          <div class="ram-row">
+            <div class="ram-service">React (static)</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-teal" style="width:0.6%"></div></div>
+            <div class="ram-val">~0 MB</div>
+          </div>
+          <div class="ram-row">
+            <div class="ram-service">Docker overhead</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-gray" style="width:2.5%"></div></div>
+            <div class="ram-val">~200 MB</div>
+          </div>
+          <div class="ram-total">
+            <div class="ram-service">Tổng dùng</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-teal" style="width:25%;opacity:0.4"></div></div>
+            <div class="ram-val">~2–2.5 GB</div>
+          </div>
+          <div class="ram-total" style="border-top:none; margin-top:0.2rem">
+            <div class="ram-service" style="color:var(--accent2)">Còn trống</div>
+            <div class="ram-bar-wrap"><div class="ram-bar bar-teal" style="width:68%"></div></div>
+            <div class="ram-val" style="color:var(--accent2)">~5.5–6 GB</div>
+          </div>
+        </div>
+        <div class="note teal" style="margin-top:0.5rem; font-size:0.8rem;">
+          <strong>Nhận xét:</strong> Chạy thoải mái. Thậm chí còn dư để deploy thêm monitoring (Grafana, Prometheus) sau này nếu muốn.
+        </div>
+      </div>
+
+      <!-- Storage -->
+      <div class="card">
+        <div class="card-title">Ước tính Storage sử dụng</div>
+        <div class="storage-grid">
+          <div class="storage-item"><div class="storage-label">Ubuntu + packages</div><div class="storage-val">~8 GB</div></div>
+          <div class="storage-item"><div class="storage-label">Docker images</div><div class="storage-val">~5 GB</div></div>
+          <div class="storage-item"><div class="storage-label">PostgreSQL data</div><div class="storage-val">~1–3 GB</div></div>
+          <div class="storage-item"><div class="storage-label">Qdrant vectors</div><div class="storage-val">~2–5 GB</div></div>
+          <div class="storage-item"><div class="storage-label">Uploaded docs</div><div class="storage-val">~5–15 GB</div></div>
+          <div class="storage-item"><div class="storage-label">Nginx + logs</div><div class="storage-val">~1–2 GB</div></div>
+        </div>
+        <div class="storage-total">
+          <div class="storage-label">Tổng dùng (ước tính)</div>
+          <div class="storage-val">~22–38 GB</div>
+        </div>
+        <div class="storage-total" style="background:rgba(108,99,255,0.07); border-color:rgba(108,99,255,0.25); margin-top:0.4rem;">
+          <div class="storage-label" style="color:var(--accent)">Còn trống trên 80GB SSD</div>
+          <div class="storage-val" style="color:var(--accent)">~42–58 GB</div>
+        </div>
+        <div class="note yellow" style="margin-top:0.6rem; font-size:0.8rem;">
+          <strong>Lưu ý:</strong> Phần tài liệu upload chiếm nhiều nhất. Nên đặt giới hạn upload per user (VD: 200MB/user) để tránh hết SSD.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CPU / Scale -->
+    <div class="grid-3" style="margin-top:1rem">
+      <div class="spec-card">
+        <div class="spec-val">4</div>
+        <div class="spec-unit">vCPU cores</div>
+        <div class="spec-note">FastAPI async I/O — không CPU-bound. <strong>1 core đủ</strong> cho đề tài. 4 core = rất thoải mái, xử lý parallel requests.</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-val">8 GB</div>
+        <div class="spec-unit">RAM</div>
+        <div class="spec-note">Hệ thống dùng ~2.5GB. <strong>Còn ~5.5GB</strong> headroom. Đủ để tăng Qdrant cache khi nhiều vector hơn.</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-val">80 GB</div>
+        <div class="spec-unit">SSD</div>
+        <div class="spec-note">Dùng ~30–40GB. Còn <strong>40–50GB</strong> dự phòng. Đủ cho vài trăm sinh viên upload tài liệu.</div>
+      </div>
+    </div>
+
+    <!-- Compare với nếu dùng Dify -->
+    <div class="note yellow" style="margin-top:1rem;">
+      <strong>So sánh: Nếu bạn dùng Dify thay vì Direct API</strong>
+      Dify cần thêm ~2–4GB RAM chỉ cho các service của nó (worker, web, sandbox, redis...). Với 8GB RAM, vừa đủ chật chội. Quyết định bỏ Dify là đúng đắn cho VPS 8GB này.
+    </div>
+  </section>
+
+  <!-- ── Đã chốt ── -->
+  <section>
+    <h2>Tất cả quyết định đã chốt</h2>
+    <div class="resolved-banner"><div class="rb-icon">🎨</div><div><h4>UI Libraries: ReUI + Lucide Icons + UIverse</h4><p>ReUI (component library chính — Shadcn/Tailwind) · Lucide (icons) · UIverse (animations, effects)</p></div></div>
+    <div class="resolved-banner"><div class="rb-icon">🤖</div><div><h4>AI: Gemini 2.0 Flash (chính) + NVIDIA/Groq (fallback) — Không Dify</h4><p>Gọi thẳng API từ FastAPI. AI Gateway mỏng tự build. Qdrant cho vector store.</p></div></div>
+    <div class="resolved-banner"><div class="rb-icon">📚</div><div><h4>RAG: LlamaIndex + Gemini Embedding + Qdrant</h4><p>LlamaIndex giúp làm RAG nhanh cho người mới. 2 collection: Personal (tài liệu cá nhân) + Shared (sổ tay SV).</p></div></div>
+    <div class="resolved-banner"><div class="rb-icon">❓</div><div><h4>MCQ: Tối đa 50 câu — Lưu DB 7 ngày — A/B/C/D + đáp án + giải thích</h4><p>Sinh viên chọn số câu (10/20/30/50), độ khó, chủ đề (optional).</p></div></div>
+    <div class="resolved-banner"><div class="rb-icon">🔀</div><div><h4>Intent Routing: Hybrid — Keyword-first → LLM fallback → default Study RAG</h4><p>Tiết kiệm token cho 80% cases. LLM chỉ gọi khi keyword không match. Không bao giờ crash — luôn có default.</p></div></div>
+    <div class="resolved-banner"><div class="rb-icon">🏛️</div><div><h4>Admin Portal: Có — Quản lý sổ tay SV + users + analytics</h4><p>Dùng is_superuser đã có sẵn trong FastAPI template. React Admin UI riêng.</p></div></div>
+    <div class="resolved-banner"><div class="rb-icon">🖥️</div><div><h4>VPS: 4 CPU / 8GB RAM / 80GB SSD → Ubuntu 24.04 LTS ✅</h4><p>Specs phù hợp. Hệ thống dùng ~2–2.5GB RAM, ~30–40GB storage. Còn rất nhiều headroom.</p></div></div>
+  </section>
+
+  <!-- ── AI Providers ── -->
+  <section>
+    <h2>AI Providers — Free Tier</h2>
+    <div class="grid-4">
+      <div class="provider-card recommended">
+        <div class="rec-badge">CHÍNH</div>
+        <div class="provider-name">Google Gemini API</div>
+        <div class="provider-sub">aistudio.google.com</div>
+        <div class="limit-row"><span class="limit-key">Chat model</span><span class="limit-val green">gemini-2.0-flash</span></div>
+        <div class="limit-row"><span class="limit-key">Req/ngày</span><span class="limit-val green">1,500 free</span></div>
+        <div class="limit-row"><span class="limit-key">RPM</span><span class="limit-val green">15 req/min</span></div>
+        <div class="limit-row"><span class="limit-key">Embed</span><span class="limit-val green">text-embedding-004</span></div>
+        <div class="use-tags"><span class="tag chat">Chat</span><span class="tag mcq">MCQ</span><span class="tag embed">Embed</span></div>
+      </div>
+      <div class="provider-card secondary">
+        <div class="sec-badge">FALLBACK 1</div>
+        <div class="provider-name">NVIDIA Build</div>
+        <div class="provider-sub">build.nvidia.com</div>
+        <div class="limit-row"><span class="limit-key">Model</span><span class="limit-val purple">Llama 3.3 70B</span></div>
+        <div class="limit-row"><span class="limit-key">Credits</span><span class="limit-val purple">1,000 req free</span></div>
+        <div class="limit-row"><span class="limit-key">API format</span><span class="limit-val purple">OpenAI-compat</span></div>
+        <div class="use-tags"><span class="tag backup">Fallback chat</span></div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">Groq</div>
+        <div class="provider-sub">console.groq.com</div>
+        <div class="limit-row"><span class="limit-key">Model</span><span class="limit-val yellow">Llama 3.3 70B</span></div>
+        <div class="limit-row"><span class="limit-key">RPM</span><span class="limit-val yellow">30 req/min</span></div>
+        <div class="limit-row"><span class="limit-key">Speed</span><span class="limit-val yellow">Rất nhanh</span></div>
+        <div class="use-tags"><span class="tag backup">Fallback nhanh</span></div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">OpenRouter</div>
+        <div class="provider-sub">openrouter.ai</div>
+        <div class="limit-row"><span class="limit-key">Models</span><span class="limit-val yellow">200+ models</span></div>
+        <div class="limit-row"><span class="limit-key">Free models</span><span class="limit-val yellow">Có nhiều</span></div>
+        <div class="limit-row"><span class="limit-key">API format</span><span class="limit-val yellow">OpenAI-compat</span></div>
+        <div class="use-tags"><span class="tag backup">Last resort</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── UI Libraries ── -->
+  <section>
+    <h2>UI Libraries đã chốt</h2>
+    <div class="grid-3">
+      <a class="lib-card confirmed" href="https://reui.io" target="_blank">
+        <div class="confirmed-tick">✓ CONFIRMED</div>
+        <div class="lib-name">ReUI</div>
+        <div class="lib-role">Component Library chính</div>
+        <div class="lib-desc">Shadcn/UI + Tailwind. DataTable, Form, Modal, Sidebar, Chat bubbles, Dark mode.</div>
+        <div class="lib-url">reui.io</div>
+      </a>
+      <a class="lib-card confirmed" href="https://lucide.dev" target="_blank">
+        <div class="confirmed-tick">✓ CONFIRMED</div>
+        <div class="lib-name">Lucide Icons</div>
+        <div class="lib-role">Icon System</div>
+        <div class="lib-desc">lucide-react — 1400+ icons. Nav, action buttons, file type icons, status indicators.</div>
+        <div class="lib-url">lucide.dev</div>
+      </a>
+      <a class="lib-card confirmed" href="https://uiverse.io" target="_blank">
+        <div class="confirmed-tick">✓ CONFIRMED</div>
+        <div class="lib-name">UIverse</div>
+        <div class="lib-role">UI Enhancement</div>
+        <div class="lib-desc">Loading animations, button effects, card styles, quiz animations, progress bars. Copy CSS về dùng.</div>
+        <div class="lib-url">uiverse.io</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── RAG + 2 collections ── -->
+  <section>
+    <h2>RAG — LlamaIndex + Qdrant (2 collections)</h2>
+    <div class="rag-split">
+      <div class="rag-box personal">
+        <h3>📚 Personal RAG — Tài liệu học tập</h3>
+        <div class="rag-subtitle">Private — mỗi user một collection</div>
+        <div class="rag-row"><span class="label">Collection</span><code>docs_user_{user_id}</code></div>
+        <div class="rag-row"><span class="label">Nội dung</span>Slide, giáo trình, notes</div>
+        <div class="rag-row"><span class="label">Dùng cho</span>Chat hỏi bài + sinh MCQ</div>
+        <div class="rag-row"><span class="label">Thư viện</span>LlamaIndex + Gemini embed + Qdrant</div>
+      </div>
+      <div class="rag-box shared">
+        <h3>🏫 Shared RAG — Sổ tay sinh viên</h3>
+        <div class="rag-subtitle">Public — một collection dùng chung</div>
+        <div class="rag-row"><span class="label">Collection</span><code>handbook_shared</code></div>
+        <div class="rag-row"><span class="label">Nội dung</span>Quy chế, lịch thi, thủ tục</div>
+        <div class="rag-row"><span class="label">Update</span>Admin upload → re-index</div>
+        <div class="rag-row"><span class="label">Ai hỏi</span>Tất cả sinh viên</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MCQ ── -->
+  <section>
+    <h2>MCQ — Config đã chốt</h2>
+    <div class="mcq-config">
+      <div class="mcq-box"><div class="mcq-val">50</div><div class="mcq-label">Số câu tối đa</div></div>
+      <div class="mcq-box"><div class="mcq-val">7 ngày</div><div class="mcq-label">Lưu quiz trong DB</div></div>
+      <div class="mcq-box"><div class="mcq-val">A/B/C/D</div><div class="mcq-label">Format + đáp án + giải thích</div></div>
+    </div>
+  </section>
+
+  <!-- ── Open Questions ── -->
+  <section>
+    <h2>Câu hỏi còn lại</h2>
+    <div class="decision-item resolved"><div class="q">VPS specs?</div><div class="a">→ 4 CPU / 8GB RAM / 80GB SSD → Ubuntu 24.04 LTS. Dư sức. Hệ thống dùng ~2.5GB RAM, ~35GB SSD.</div></div>
+    <div class="decision-item resolved"><div class="q">UI Libraries?</div><div class="a">→ ReUI + Lucide Icons + UIverse. Chốt.</div></div>
+    <div class="decision-item resolved"><div class="q">MCQ config?</div><div class="a">→ Tối đa 50 câu. Lưu DB 7 ngày. A/B/C/D + đáp án + giải thích.</div></div>
+    <div class="decision-item resolved"><div class="q">Admin Portal?</div><div class="a">→ Có. is_superuser đã có trong template.</div></div>
+    <div class="decision-item resolved"><div class="q">AI Stack?</div><div class="a">→ Gemini 2.0 Flash (chính) + NVIDIA/Groq (fallback). Không Dify.</div></div>
+    <div class="decision-item resolved"><div class="q">RAG approach?</div><div class="a">→ LlamaIndex + Gemini Embedding + Qdrant. 2 collections: Personal + Shared.</div></div>
+    <div class="decision-item resolved"><div class="q">Intent routing?</div><div class="a">→ Hybrid: Keyword-first → LLM fallback → default Study RAG.</div></div>
+    <div class="decision-item warn"><div class="q">Giới hạn upload per user?</div><div class="a">Nên đặt giới hạn (VD: 100–200MB/user) để tránh hết SSD. Cần quyết định con số cụ thể.</div></div>
+    <div class="decision-item warn"><div class="q">Bắt đầu code Phase nào trước?</div><div class="a">Đề xuất: Phase 2 — AI Gateway (Gemini Provider + /api/chat endpoint). Sau đó Phase 3 — RAG với LlamaIndex. Bạn muốn bắt đầu không?</div></div>
+  </section>
+
+  <!-- ── Roadmap ── -->
+  <section>
+    <h2>Roadmap</h2>
+    <div class="card">
+      <div class="phase-item done"><div class="phase-num">1</div><div><div class="phase-name">Foundation (đã có)</div><div class="phase-tasks">FastAPI template + PostgreSQL + Auth JWT + React Vite + Docker Compose</div></div></div>
+      <div class="phase-item active"><div class="phase-num">2</div><div><div class="phase-name">AI Gateway — Gemini Provider + Fallback</div><div class="phase-tasks">AIProvider interface + GeminiProvider (chat, stream, embed) + NVIDIA/Groq fallback + /api/chat test</div></div></div>
+      <div class="phase-item"><div class="phase-num">3</div><div><div class="phase-name">RAG Personal — LlamaIndex + Gemini Embed + Qdrant</div><div class="phase-tasks">Upload PDF/DOCX → LlamaIndex index → Qdrant → retrieval → chat với tài liệu cá nhân</div></div></div>
+      <div class="phase-item"><div class="phase-num">4</div><div><div class="phase-name">Shared RAG — Sổ tay sinh viên + Intent Routing</div><div class="phase-tasks">Admin upload sổ tay → Qdrant shared → keyword+LLM intent routing → trả lời trích nguồn</div></div></div>
+      <div class="phase-item"><div class="phase-num">5</div><div><div class="phase-name">MCQ Generation — 10–50 câu, lưu 7 ngày</div><div class="phase-tasks">Gemini sinh JSON câu hỏi → validate → PostgreSQL → quiz UI → chấm điểm + xem giải thích</div></div></div>
+      <div class="phase-item"><div class="phase-num">6</div><div><div class="phase-name">React UI — ReUI + Lucide + UIverse</div><div class="phase-tasks">Chat streaming UI, upload, quiz, lịch sử học, Admin Portal (sổ tay + users + analytics)</div></div></div>
+      <div class="phase-item"><div class="phase-num">7</div><div><div class="phase-name">Deploy Ubuntu 24.04 — 4CPU/8GB/80GB</div><div class="phase-tasks">Nginx config, cron job xóa quiz expired, rate limiting, logging, SSL, go live</div></div></div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Brainstorm Board — Cập nhật: 2026-08-28 19:55 ICT &nbsp;·&nbsp; VPS: 4CPU/8GB/80GB ✅ &nbsp;·&nbsp; Gần chốt toàn bộ decisions
+</footer>
+</body>
+</html>

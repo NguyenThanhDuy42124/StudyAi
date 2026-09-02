@@ -12,7 +12,14 @@ import { client } from "./client/client.gen"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
+import { useGSAP } from "@gsap/react"
+
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { routeTree } from "./routeTree.gen"
+
+// Register GSAP plugins
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 client.setConfig({
   baseURL: import.meta.env.VITE_API_URL ?? "",

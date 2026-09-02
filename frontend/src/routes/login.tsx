@@ -44,7 +44,7 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       {
-        title: "Log In - FastAPI Template",
+        title: "Đăng nhập - StudyAI Assistant",
       },
     ],
   }),
@@ -57,8 +57,8 @@ function Login() {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      username: "",
-      password: "",
+      username: "admin@admin.com",
+      password: "admin123",
     },
   })
 

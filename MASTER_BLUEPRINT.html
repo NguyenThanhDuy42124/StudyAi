@@ -1,0 +1,2943 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Master Blueprint — AI Student Assistant</title>
+<style>
+:root {
+  --bg:#0f1117; --s1:#1a1d27; --s2:#22253a; --s3:#2a2d40;
+  --border:#2e3147; --border2:#3a3d56;
+  --accent:#6c63ff; --teal:#00d4aa; --yellow:#ffd166; --orange:#f4a261; --red:#ff6b6b;
+  --text:#e8eaf6; --muted:#8b90b8;
+  --font:'Segoe UI',system-ui,sans-serif; --mono:'Cascadia Code','Fira Code',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;}
+
+/* ── Layout ── */
+.shell{display:flex;min-height:100vh;}
+nav{width:240px;background:var(--s1);border-right:1px solid var(--border);padding:1.5rem 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
+.nav-logo{padding:0 1.25rem 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1rem;}
+.nav-logo h2{font-size:0.85rem;font-weight:800;color:var(--teal);}
+.nav-logo p{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.nav-section{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);padding:0.75rem 1.25rem 0.3rem;}
+.nav-item{display:block;padding:0.45rem 1.25rem;font-size:0.82rem;color:var(--muted);text-decoration:none;border-left:2px solid transparent;transition:all 0.15s;}
+.nav-item:hover,.nav-item.active{color:var(--text);border-left-color:var(--accent);background:rgba(108,99,255,0.06);}
+
+main{flex:1;padding:2.5rem 3rem;max-width:1060px;}
+
+/* ── Headings ── */
+.page-title{font-size:1.6rem;font-weight:900;margin-bottom:0.4rem;}
+.page-sub{color:var(--muted);font-size:0.9rem;margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);}
+
+h2.section{font-size:1.05rem;font-weight:800;color:var(--text);margin:2.5rem 0 1rem;padding-top:2rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:0.6rem;}
+h2.section .icon{font-size:1.1rem;}
+h3.sub{font-size:0.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin:1.25rem 0 0.6rem;}
+
+/* ── Cards ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;}
+.card.teal{border-color:rgba(0,212,170,0.35);background:rgba(0,212,170,0.05);}
+.card.purple{border-color:rgba(108,99,255,0.35);background:rgba(108,99,255,0.05);}
+.card.yellow{border-color:rgba(255,209,102,0.35);background:rgba(255,209,102,0.05);}
+.card.orange{border-color:rgba(244,162,97,0.35);background:rgba(244,162,97,0.05);}
+
+/* ── Code blocks ── */
+pre{font-family:var(--mono);font-size:0.8rem;line-height:1.7;overflow-x:auto;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.3rem;margin:0.5rem 0;}
+pre.tree{color:#a5b4fc;}
+pre.sql{color:#86efac;}
+pre.yaml{color:#fde68a;}
+pre.http{color:#6ee7b7;}
+pre.py{color:#c4b5fd;}
+pre.env{color:#fdba74;}
+code{font-family:var(--mono);font-size:0.82rem;background:var(--s2);padding:1px 6px;border-radius:4px;color:var(--teal);}
+
+/* ── Tables ── */
+table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+th{background:var(--s2);color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;padding:0.55rem 0.9rem;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:0.6rem 0.9rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.t-key{color:var(--teal);font-family:var(--mono);}
+.t-type{color:var(--orange);font-family:var(--mono);font-size:0.78rem;}
+.t-pk{color:var(--yellow);font-size:0.68rem;font-weight:700;background:rgba(255,209,102,0.15);padding:1px 6px;border-radius:3px;}
+.t-fk{color:var(--accent);font-size:0.68rem;font-weight:700;background:rgba(108,99,255,0.15);padding:1px 6px;border-radius:3px;}
+.t-idx{color:var(--teal);font-size:0.68rem;background:rgba(0,212,170,0.12);padding:1px 6px;border-radius:3px;}
+.t-note{color:var(--muted);font-size:0.78rem;}
+
+/* ── Badges ── */
+.badge{display:inline-block;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:4px;}
+.badge.get   {background:rgba(0,212,170,0.2);color:var(--teal);}
+.badge.post  {background:rgba(108,99,255,0.2);color:#a5b4fc;}
+.badge.delete{background:rgba(255,107,107,0.2);color:var(--red);}
+.badge.patch {background:rgba(255,209,102,0.2);color:var(--yellow);}
+.badge.admin {background:rgba(244,162,97,0.2);color:var(--orange);}
+.badge.auth  {background:rgba(139,144,184,0.15);color:var(--muted);}
+.badge.core  {background:rgba(0,212,170,0.15);color:var(--teal);}
+.badge.ext   {background:rgba(244,162,97,0.15);color:var(--orange);}
+
+/* ── Pills ── */
+.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:0.75rem;font-weight:600;border:1px solid transparent;}
+.pill.purple{background:rgba(108,99,255,0.15);border-color:rgba(108,99,255,0.35);color:#9c96ff;}
+.pill.teal  {background:rgba(0,212,170,0.12);border-color:rgba(0,212,170,0.35);color:#00d4aa;}
+.pill.yellow{background:rgba(255,209,102,0.12);border-color:rgba(255,209,102,0.35);color:#ffd166;}
+.pill.gray  {background:rgba(139,144,184,0.1);border-color:rgba(139,144,184,0.25);color:var(--muted);}
+
+/* ── Flow ── */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0.35rem;padding:0.75rem;background:var(--s2);border-radius:8px;border:1px solid var(--border);}
+.fn{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.78rem;font-weight:600;}
+.fn.t{border-color:rgba(0,212,170,0.4);color:var(--teal);}
+.fn.p{border-color:rgba(108,99,255,0.4);color:#a5b4fc;}
+.fn.y{border-color:rgba(255,209,102,0.4);color:var(--yellow);}
+.fn.o{border-color:rgba(244,162,97,0.4);color:var(--orange);}
+.arr{color:var(--muted);font-size:0.85rem;}
+
+/* ── Decision box ── */
+.decided{background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.25);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.5rem;font-size:0.83rem;}
+.decided strong{color:var(--teal);}
+
+/* ── Note ── */
+.note{border-radius:8px;padding:0.75rem 1rem;font-size:0.82rem;margin:0.6rem 0;}
+.note.y{background:rgba(255,209,102,0.07);border:1px solid rgba(255,209,102,0.25);color:var(--yellow);}
+.note.t{background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.25);color:var(--teal);}
+.note.p{background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.3);color:#a5b4fc;}
+.note.r{background:rgba(255,107,107,0.07);border:1px solid rgba(255,107,107,0.25);color:var(--red);}
+.note strong{font-weight:700;display:block;margin-bottom:0.2rem;}
+
+/* ── Grid ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+@media(max-width:800px){.g2,.g3{grid-template-columns:1fr;}}
+
+/* ── Section anchor ── */
+section{scroll-margin-top:1rem;}
+
+footer{padding:2rem 3rem;color:var(--muted);font-size:0.75rem;border-top:1px solid var(--border);margin-top:2rem;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── Sidebar Navigation ── -->
+<nav>
+  <div class="nav-logo">
+    <h2>AI Student Assistant</h2>
+    <p>Master Blueprint v1.0</p>
+  </div>
+  <div class="nav-section">Tổng quan</div>
+  <a class="nav-item" href="#decisions">Decisions đã chốt</a>
+  <a class="nav-item" href="#stack">Tech Stack</a>
+  <div class="nav-section">Cấu trúc</div>
+  <a class="nav-item" href="#folder-backend">Backend Folders</a>
+  <a class="nav-item" href="#folder-frontend">Frontend Folders</a>
+  <a class="nav-item" href="#folder-infra">Infrastructure</a>
+  <div class="nav-section">Database</div>
+  <a class="nav-item" href="#db-schema">Schema & Tables</a>
+  <a class="nav-item" href="#db-relations">Relationships</a>
+  <div class="nav-section">API</div>
+  <a class="nav-item" href="#api-auth">Auth</a>
+  <a class="nav-item" href="#api-docs">Documents</a>
+  <a class="nav-item" href="#api-chat">Chat</a>
+  <a class="nav-item" href="#api-quiz">Quiz / MCQ</a>
+  <a class="nav-item" href="#api-admin">Admin</a>
+  <div class="nav-section">Luồng xử lý</div>
+  <a class="nav-item" href="#flow-upload">Upload tài liệu</a>
+  <a class="nav-item" href="#flow-rag">RAG Pipeline</a>
+  <a class="nav-item" href="#flow-intent">Intent Routing</a>
+  <a class="nav-item" href="#flow-mcq">MCQ Generation</a>
+  <a class="nav-item" href="#flow-chat">Chat Flow</a>
+  <div class="nav-section">AI Layer</div>
+  <a class="nav-item" href="#ai-gateway">AI Gateway</a>
+  <a class="nav-item" href="#ai-rag">RAG Custom</a>
+  <a class="nav-item" href="#ai-providers">Providers</a>
+  <div class="nav-section">Frontend</div>
+  <a class="nav-item" href="#fe-pages">Pages & Routes</a>
+  <a class="nav-item" href="#fe-components">Components</a>
+  <div class="nav-section">Deploy</div>
+  <a class="nav-item" href="#docker">Docker Compose</a>
+  <a class="nav-item" href="#nginx-config">Nginx + SSL</a>
+  <a class="nav-item" href="#env">Environment Vars</a>
+  <a class="nav-item" href="#vps">VPS Specs</a>
+  <div class="nav-section">Visibility</div>
+  <a class="nav-item" href="#seo">SEO</a>
+  <a class="nav-item" href="#geo">GEO — AI Search</a>
+  <div class="nav-section">Bổ sung</div>
+  <a class="nav-item" href="#rag-db">RAG → Database</a>
+  <a class="nav-item" href="#doc-processing">Doc Processing</a>
+  <a class="nav-item" href="#chat-design">Chat Data Design</a>
+  <a class="nav-item" href="#admin-scope">Admin Scope</a>
+  <a class="nav-item" href="#risks">Risks & Edge Cases</a>
+  <a class="nav-item" href="#gsap-guide">🎬 GSAP Animations</a>
+  <a class="nav-item" href="#code-quality">Code Quality</a>
+  <div class="nav-section">Còn thiếu</div>
+  <a class="nav-item" href="#missing-gaps">Gaps tổng hợp</a>
+  <a class="nav-item" href="#rate-limiting">Rate Limiting</a>
+  <a class="nav-item" href="#status-polling">Status Updates</a>
+  <a class="nav-item" href="#backup">Backup Strategy</a>
+  <a class="nav-item" href="#logging">Logging</a>
+  <a class="nav-item" href="#missing-ux">UX còn thiếu</a>
+</nav>
+
+<!-- ── Main Content ── -->
+<main>
+<div class="page-title">Master Blueprint</div>
+<div class="page-sub">
+  Tài liệu kiến trúc đầy đủ — AI Student Assistant Platform<br>
+  <strong style="color:var(--teal)">Stack:</strong> FastAPI + React + Gemini API + Qdrant + PostgreSQL + Docker → Ubuntu 24.04 LTS
+</div>
+
+<!-- ════════════════════════════════════════
+     DECISIONS
+════════════════════════════════════════ -->
+<section id="decisions">
+<h2 class="section"><span class="icon">✅</span> Decisions đã chốt — Không thay đổi</h2>
+
+<div class="decided"><strong>AI:</strong> Gemini 2.0 Flash (chính) → NVIDIA Build (fallback 1) → Groq (fallback 2). Không Dify.</div>
+<div class="decided"><strong>RAG:</strong> Tự build với Qdrant client trực tiếp (không LlamaIndex). Gemini text-embedding-004 cho embedding.</div>
+<div class="decided"><strong>Intent Routing:</strong> Hybrid — keyword-first → LLM fallback → default Study RAG.</div>
+<div class="decided"><strong>MCQ:</strong> Tối đa 50 câu (10/20/30/50). Lưu DB 7 ngày. A/B/C/D + đáp án + giải thích.</div>
+<div class="decided"><strong>UI Libraries:</strong> ReUI (components) + Lucide (icons) + UIverse (effects/animations).</div>
+<div class="decided"><strong>Admin Portal:</strong> Có. Quản lý sổ tay SV + users + analytics.</div>
+<div class="decided"><strong>RAG Collections:</strong> 2 loại — <code>docs_user_{id}</code> (personal) + <code>handbook_shared</code> (sổ tay SV).</div>
+<div class="decided"><strong>VPS:</strong> 4 CPU / 8GB RAM / 80GB SSD / Ubuntu 24.04 LTS. Đủ dư.</div>
+<div class="decided"><strong>Upload limit:</strong> 200MB/user. File types: PDF, DOCX, TXT, PPTX.</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     TECH STACK
+════════════════════════════════════════ -->
+<section id="stack">
+<h2 class="section"><span class="icon">🛠️</span> Tech Stack</h2>
+<div class="g3">
+  <div class="card">
+    <h3 class="sub">Backend</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+      <span class="pill yellow">Python 3.14</span>
+      <span class="pill yellow">FastAPI</span>
+      <span class="pill yellow">SQLModel</span>
+      <span class="pill yellow">Alembic</span>
+      <span class="pill yellow">PostgreSQL</span>
+      <span class="pill yellow">psycopg3</span>
+      <span class="pill yellow">PyJWT</span>
+      <span class="pill yellow">pwdlib</span>
+      <span class="pill yellow">httpx</span>
+      <span class="pill yellow">PyMuPDF</span>
+      <span class="pill yellow">python-docx</span>
+      <span class="pill yellow">python-pptx</span>
+      <span class="pill yellow">qdrant-client</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3 class="sub">Frontend</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+      <span class="pill teal">React 19</span>
+      <span class="pill teal">TypeScript</span>
+      <span class="pill teal">Vite</span>
+      <span class="pill teal">TanStack Router</span>
+      <span class="pill teal">TanStack Query</span>
+      <span class="pill teal">ReUI (shadcn)</span>
+      <span class="pill teal">Tailwind CSS</span>
+      <span class="pill teal">lucide-react</span>
+      <span class="pill teal">UIverse</span>
+      <span class="pill teal">Zustand</span>
+      <span class="pill teal">axios</span>
+      <span class="pill teal">GSAP 3</span>
+      <span class="pill teal">@gsap/react</span>
+      <span class="pill teal">ScrollTrigger</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3 class="sub">AI & Infrastructure</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+      <span class="pill purple">Gemini 2.0 Flash</span>
+      <span class="pill purple">text-embedding-004</span>
+      <span class="pill purple">NVIDIA Build API</span>
+      <span class="pill purple">Groq API</span>
+      <span class="pill gray">Qdrant</span>
+      <span class="pill gray">Docker Compose</span>
+      <span class="pill gray">Nginx</span>
+      <span class="pill gray">Ubuntu 24.04</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     FOLDER STRUCTURE — BACKEND
+════════════════════════════════════════ -->
+<section id="folder-backend">
+<h2 class="section"><span class="icon">📁</span> Backend — Cấu trúc thư mục</h2>
+<pre class="tree">backend/
+├── app/
+│   │
+│   ├── core/                          # Config, DB, Security
+│   │   ├── __init__.py
+│   │   ├── config.py                  # Settings từ .env (pydantic-settings)
+│   │   ├── database.py                # SQLAlchemy engine + session
+│   │   ├── security.py                # JWT tạo/verify, hash password
+│   │   └── deps.py                    # FastAPI dependencies (get_current_user, get_db...)
+│   │
+│   ├── models/                        # SQLModel table definitions
+│   │   ├── __init__.py
+│   │   ├── user.py                    # User, UserCreate, UserPublic...
+│   │   ├── document.py                # Document, DocumentCreate, DocumentPublic
+│   │   ├── conversation.py            # Conversation, Message
+│   │   ├── quiz.py                    # Quiz, Question, QuizAttempt
+│   │   └── handbook.py                # HandbookDocument (cho admin upload)
+│   │
+│   ├── crud/                          # Database operations (không business logic)
+│   │   ├── __init__.py
+│   │   ├── users.py
+│   │   ├── documents.py
+│   │   ├── conversations.py
+│   │   ├── quiz.py
+│   │   └── handbook.py
+│   │
+│   ├── api/                           # HTTP layer
+│   │   ├── __init__.py
+│   │   ├── main.py                    # Include tất cả routers
+│   │   ├── deps.py                    # API-level deps (pagination, filters)
+│   │   └── routes/
+│   │       ├── __init__.py
+│   │       ├── login.py               # POST /login, /logout (existing)
+│   │       ├── users.py               # GET/PUT /users/me (existing)
+│   │       ├── chat.py                # POST /chat, GET /conversations
+│   │       ├── documents.py           # POST /documents/upload, GET, DELETE
+│   │       ├── quiz.py                # POST /quiz/generate, GET, POST /submit
+│   │       ├── admin.py               # /admin/* (superuser only)
+│   │       ├── utils.py               # GET /health-check (existing)
+│   │       └── webhook.py             # Placeholder — Zalo/Telegram sau này
+│   │
+│   ├── ai/                            # AI Gateway layer
+│   │   ├── __init__.py
+│   │   ├── gateway.py                 # Entry point — dùng trong routes
+│   │   ├── providers/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py                # AIProvider ABC + error types
+│   │   │   ├── gemini.py              # Google Gemini provider
+│   │   │   ├── nvidia.py              # NVIDIA Build (OpenAI-compat)
+│   │   │   └── groq.py                # Groq (OpenAI-compat)
+│   │   ├── router/
+│   │   │   ├── __init__.py
+│   │   │   ├── model_router.py        # Select provider + fallback chain
+│   │   │   └── fallback.py            # Error classification (retry vs stop)
+│   │   └── registry.py                # Provider registry singleton
+│   │
+│   ├── rag/                           # RAG Pipeline (custom, không LlamaIndex)
+│   │   ├── __init__.py
+│   │   ├── parsers/
+│   │   │   ├── __init__.py
+│   │   │   ├── pdf.py                 # PyMuPDF — extract text từ PDF
+│   │   │   ├── docx.py                # python-docx
+│   │   │   ├── pptx.py                # python-pptx
+│   │   │   └── txt.py                 # Plain text
+│   │   ├── chunker.py                 # Split text thành chunks (~500 tokens, overlap 50)
+│   │   ├── embeddings.py              # Gọi Gemini embed API, trả về list[float]
+│   │   ├── indexer.py                 # Upsert chunks + vectors vào Qdrant
+│   │   ├── retriever.py               # Query Qdrant, trả về top-k chunks
+│   │   └── pipeline.py                # Orchestrate: parse→chunk→embed→index hoặc retrieve→generate
+│   │
+│   ├── intent/                        # Intent routing
+│   │   ├── __init__.py
+│   │   ├── keywords.py                # Dict[intent, list[str]] keyword lists
+│   │   └── classifier.py              # Hybrid: keyword → LLM → default
+│   │
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── file_storage.py            # Save/delete uploaded files (local /uploads)
+│   │   └── cleanup.py                 # Xóa quiz expired (gọi bằng cron hoặc startup)
+│   │
+│   ├── alembic/                       # DB migrations
+│   │   ├── env.py
+│   │   └── versions/
+│   │
+│   ├── email-templates/               # Jinja2 templates (existing)
+│   ├── __init__.py
+│   ├── main.py                        # FastAPI app, CORS, routers, lifespan
+│   └── initial_data.py                # Seed superuser khi khởi động
+│
+├── tests/
+│   ├── test_ai_gateway.py
+│   ├── test_rag.py
+│   └── test_quiz.py
+│
+├── Dockerfile
+├── alembic.ini
+└── pyproject.toml</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     FOLDER STRUCTURE — FRONTEND
+════════════════════════════════════════ -->
+<section id="folder-frontend">
+<h2 class="section"><span class="icon">⚛️</span> Frontend — Cấu trúc thư mục</h2>
+<pre class="tree">frontend/
+├── src/
+│   │
+│   ├── components/                    # Reusable UI components
+│   │   ├── ui/                        # ReUI base (shadcn) — Button, Input, Card...
+│   │   ├── chat/
+│   │   │   ├── ChatWindow.tsx         # Container chứa messages + input
+│   │   │   ├── MessageBubble.tsx      # Hiển thị 1 message (user/assistant)
+│   │   │   ├── ChatInput.tsx          # Textarea + send button
+│   │   │   ├── StreamingText.tsx      # Render streaming text từng ký tự
+│   │   │   └── SourceCitation.tsx     # Hiển thị nguồn trích dẫn (trang, tài liệu)
+│   │   ├── quiz/
+│   │   │   ├── QuizGenerateForm.tsx   # Form chọn tài liệu, số câu, độ khó
+│   │   │   ├── QuestionCard.tsx       # Hiển thị 1 câu hỏi MCQ với options
+│   │   │   ├── OptionButton.tsx       # Button A/B/C/D (UIverse animation)
+│   │   │   ├── QuizProgress.tsx       # Progress bar (UIverse style)
+│   │   │   ├── ResultSummary.tsx      # Điểm, % đúng, breakdown
+│   │   │   └── ExplanationBox.tsx     # Giải thích đáp án đúng
+│   │   ├── documents/
+│   │   │   ├── UploadZone.tsx         # Drag-drop upload (UIverse style)
+│   │   │   ├── DocumentCard.tsx       # Card hiển thị 1 tài liệu
+│   │   │   ├── DocumentList.tsx       # Grid/list tài liệu
+│   │   │   └── UploadProgress.tsx     # Progress khi đang index
+│   │   ├── admin/
+│   │   │   ├── HandbookUpload.tsx     # Upload sổ tay (admin only)
+│   │   │   ├── HandbookTable.tsx      # Danh sách tài liệu đã index
+│   │   │   └── UserTable.tsx          # Quản lý users
+│   │   └── layout/
+│   │       ├── AppLayout.tsx          # Wrapper: Sidebar + Navbar + content
+│   │       ├── Sidebar.tsx            # Navigation sidebar (ReUI)
+│   │       ├── Navbar.tsx             # Top bar — user info, logout
+│   │       └── PageContainer.tsx      # Padding + max-width wrapper
+│   │
+│   ├── pages/                         # Route-level components
+│   │   ├── auth/
+│   │   │   ├── LoginPage.tsx
+│   │   │   └── RegisterPage.tsx
+│   │   ├── student/
+│   │   │   ├── DashboardPage.tsx      # Overview: docs, recent quiz, quick chat
+│   │   │   ├── DocumentsPage.tsx      # Upload + manage tài liệu
+│   │   │   ├── ChatPage.tsx           # Chat với tài liệu hoặc hỏi sổ tay SV
+│   │   │   ├── QuizGeneratePage.tsx   # Chọn config → sinh MCQ
+│   │   │   ├── QuizDoPage.tsx         # Làm quiz (timer optional)
+│   │   │   ├── QuizResultPage.tsx     # Xem kết quả + giải thích
+│   │   │   └── HistoryPage.tsx        # Lịch sử quiz 7 ngày
+│   │   └── admin/
+│   │       ├── AdminLayout.tsx        # Layout riêng cho admin
+│   │       ├── AdminDashboard.tsx     # Stats tổng quan
+│   │       ├── HandbookPage.tsx       # Upload/quản lý sổ tay SV
+│   │       ├── UsersPage.tsx          # Quản lý users
+│   │       └── AnalyticsPage.tsx      # Câu hỏi hay hỏi, topics phổ biến
+│   │
+│   ├── services/                      # API calls (axios)
+│   │   ├── api.ts                     # axios instance + interceptors (attach token)
+│   │   ├── auth.service.ts            # login, register, me
+│   │   ├── chat.service.ts            # sendMessage (SSE stream), getConversations
+│   │   ├── document.service.ts        # upload, list, delete
+│   │   ├── quiz.service.ts            # generate, getQuiz, submit, history
+│   │   └── admin.service.ts           # handbook upload, user mgmt
+│   │
+│   ├── hooks/                         # React custom hooks
+│   │   ├── useAuth.ts                 # Auth state, login, logout
+│   │   ├── useStreamChat.ts           # SSE streaming chat hook
+│   │   ├── useDocuments.ts            # TanStack Query for documents
+│   │   └── useQuiz.ts                 # Quiz state machine
+│   │
+│   ├── stores/                        # Global state (Zustand)
+│   │   ├── auth.store.ts              # user, token, isLoggedIn
+│   │   └── chat.store.ts              # conversations, active conv
+│   │
+│   ├── lib/
+│   │   ├── utils.ts                   # cn(), formatDate(), truncate()
+│   │   └── constants.ts               # API_URL, INTENT_TYPES, DIFFICULTY_LEVELS
+│   │
+│   ├── routes/
+│   │   ├── index.tsx                  # TanStack Router — tất cả routes
+│   │   └── guards.tsx                 # Auth guard, Admin guard
+│   │
+│   ├── index.css                      # Tailwind directives + global styles
+│   └── main.tsx                       # React root
+│
+├── public/
+├── index.html
+├── vite.config.ts
+├── tailwind.config.ts
+├── components.json                    # shadcn/ui config
+└── package.json</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     FOLDER STRUCTURE — INFRASTRUCTURE
+════════════════════════════════════════ -->
+<section id="folder-infra">
+<h2 class="section"><span class="icon">🐳</span> Infrastructure — Cấu trúc</h2>
+<pre class="tree">project-root/
+├── backend/                           # Backend code (xem trên)
+├── frontend/                          # Frontend code (xem trên)
+│
+├── nginx/
+│   ├── nginx.conf                     # Reverse proxy config
+│   └── default.conf                   # Server blocks
+│
+├── uploads/                           # Tài liệu user upload (mounted volume)
+│   └── user_{id}/                     # Mỗi user 1 folder
+│
+├── compose.yml                        # Production Docker Compose
+├── compose.override.yml               # Development overrides (hot-reload)
+├── .env                               # Secrets (gitignored)
+├── .env.example                       # Template cho devs khác
+├── BRAINSTORM.html                    # File này
+└── README.md</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     DATABASE SCHEMA
+════════════════════════════════════════ -->
+<section id="db-schema">
+<h2 class="section"><span class="icon">🗄️</span> Database Schema — Tất cả bảng</h2>
+
+<h3 class="sub">users (có sẵn trong template — extend thêm)</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note">default uuid4()</td></tr>
+<tr><td class="t-key">email</td><td class="t-type">VARCHAR(255)</td><td><span class="t-idx">UNIQUE INDEX</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">hashed_password</td><td class="t-type">VARCHAR</td><td></td><td class="t-note">argon2 hash</td></tr>
+<tr><td class="t-key">full_name</td><td class="t-type">VARCHAR(255)</td><td></td><td class="t-note">nullable</td></tr>
+<tr><td class="t-key">is_active</td><td class="t-type">BOOLEAN</td><td></td><td class="t-note">default true</td></tr>
+<tr><td class="t-key">is_superuser</td><td class="t-type">BOOLEAN</td><td></td><td class="t-note">default false — admin flag</td></tr>
+<tr><td class="t-key">storage_used_bytes</td><td class="t-type">BIGINT</td><td></td><td class="t-note">track dung lượng upload đã dùng</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note">default now()</td></tr>
+</table>
+</div>
+
+<h3 class="sub">documents</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">user_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → users</span></td><td class="t-note">ON DELETE CASCADE</td></tr>
+<tr><td class="t-key">filename</td><td class="t-type">VARCHAR(255)</td><td></td><td class="t-note">Tên file gốc</td></tr>
+<tr><td class="t-key">file_path</td><td class="t-type">VARCHAR(500)</td><td></td><td class="t-note">Path trên server: uploads/user_{id}/uuid.pdf</td></tr>
+<tr><td class="t-key">file_type</td><td class="t-type">VARCHAR(10)</td><td></td><td class="t-note">pdf | docx | txt | pptx</td></tr>
+<tr><td class="t-key">file_size_bytes</td><td class="t-type">BIGINT</td><td></td><td class="t-note"></td></tr>
+<tr><td class="t-key">status</td><td class="t-type">VARCHAR(20)</td><td></td><td class="t-note">pending | indexing | ready | failed</td></tr>
+<tr><td class="t-key">chunk_count</td><td class="t-type">INTEGER</td><td></td><td class="t-note">Số chunks đã embed vào Qdrant</td></tr>
+<tr><td class="t-key">qdrant_collection</td><td class="t-type">VARCHAR(100)</td><td></td><td class="t-note">docs_user_{user_id}</td></tr>
+<tr><td class="t-key">error_message</td><td class="t-type">TEXT</td><td></td><td class="t-note">Khi status=failed</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note"></td></tr>
+</table>
+</div>
+
+<h3 class="sub">conversations</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">user_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → users</span></td><td class="t-note">ON DELETE CASCADE</td></tr>
+<tr><td class="t-key">title</td><td class="t-type">VARCHAR(255)</td><td></td><td class="t-note">Auto-generated từ message đầu</td></tr>
+<tr><td class="t-key">type</td><td class="t-type">VARCHAR(20)</td><td></td><td class="t-note">study | handbook</td></tr>
+<tr><td class="t-key">document_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → documents</span> nullable</td><td class="t-note">Null nếu type=handbook</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note"></td></tr>
+<tr><td class="t-key">updated_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note">Last message time</td></tr>
+</table>
+</div>
+
+<h3 class="sub">messages</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">conversation_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → conversations</span></td><td class="t-note">ON DELETE CASCADE</td></tr>
+<tr><td class="t-key">role</td><td class="t-type">VARCHAR(10)</td><td></td><td class="t-note">user | assistant | system</td></tr>
+<tr><td class="t-key">content</td><td class="t-type">TEXT</td><td></td><td class="t-note">Nội dung message</td></tr>
+<tr><td class="t-key">sources</td><td class="t-type">JSONB</td><td></td><td class="t-note">[{doc, page, chunk_text}] — trích nguồn RAG</td></tr>
+<tr><td class="t-key">intent</td><td class="t-type">VARCHAR(20)</td><td></td><td class="t-note">study | handbook | mcq — intent đã classify</td></tr>
+<tr><td class="t-key">model_used</td><td class="t-type">VARCHAR(50)</td><td></td><td class="t-note">gemini-2.0-flash, llama-3.3-70b...</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note"></td></tr>
+</table>
+</div>
+
+<h3 class="sub">quizzes</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">user_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → users</span></td><td class="t-note">ON DELETE CASCADE</td></tr>
+<tr><td class="t-key">document_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → documents</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">title</td><td class="t-type">VARCHAR(255)</td><td></td><td class="t-note">Auto: "Quiz: {filename} - {date}"</td></tr>
+<tr><td class="t-key">question_count</td><td class="t-type">INTEGER</td><td></td><td class="t-note">10 | 20 | 30 | 50</td></tr>
+<tr><td class="t-key">difficulty</td><td class="t-type">VARCHAR(10)</td><td></td><td class="t-note">easy | medium | hard | mixed</td></tr>
+<tr><td class="t-key">topic_filter</td><td class="t-type">VARCHAR(255)</td><td></td><td class="t-note">Chủ đề cụ thể (optional, nullable)</td></tr>
+<tr><td class="t-key">status</td><td class="t-type">VARCHAR(20)</td><td></td><td class="t-note">generating | ready | failed</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note"></td></tr>
+<tr><td class="t-key">expires_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note">created_at + 7 days — auto cleanup</td></tr>
+</table>
+</div>
+
+<h3 class="sub">questions</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">quiz_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → quizzes</span></td><td class="t-note">ON DELETE CASCADE</td></tr>
+<tr><td class="t-key">order_index</td><td class="t-type">INTEGER</td><td></td><td class="t-note">Thứ tự câu hỏi (1, 2, 3...)</td></tr>
+<tr><td class="t-key">question_text</td><td class="t-type">TEXT</td><td></td><td class="t-note">Nội dung câu hỏi</td></tr>
+<tr><td class="t-key">options</td><td class="t-type">JSONB</td><td></td><td class="t-note">{"A":"...", "B":"...", "C":"...", "D":"..."}</td></tr>
+<tr><td class="t-key">correct_answer</td><td class="t-type">VARCHAR(1)</td><td></td><td class="t-note">A | B | C | D</td></tr>
+<tr><td class="t-key">explanation</td><td class="t-type">TEXT</td><td></td><td class="t-note">Giải thích tại sao đáp án đúng</td></tr>
+<tr><td class="t-key">source_chunk</td><td class="t-type">TEXT</td><td></td><td class="t-note">Đoạn văn gốc trong tài liệu (trích dẫn)</td></tr>
+</table>
+</div>
+
+<h3 class="sub">quiz_attempts</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">quiz_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → quizzes</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">user_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → users</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">answers</td><td class="t-type">JSONB</td><td></td><td class="t-note">{"question_id": "A", ...} — đáp án sinh viên chọn</td></tr>
+<tr><td class="t-key">score</td><td class="t-type">INTEGER</td><td></td><td class="t-note">Số câu đúng</td></tr>
+<tr><td class="t-key">total</td><td class="t-type">INTEGER</td><td></td><td class="t-note">Tổng số câu</td></tr>
+<tr><td class="t-key">started_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note"></td></tr>
+<tr><td class="t-key">completed_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note">Nullable — null nếu chưa nộp</td></tr>
+</table>
+</div>
+
+<h3 class="sub">handbook_documents (sổ tay sinh viên)</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">filename</td><td class="t-type">VARCHAR(255)</td><td></td><td class="t-note">Tên file sổ tay</td></tr>
+<tr><td class="t-key">file_path</td><td class="t-type">VARCHAR(500)</td><td></td><td class="t-note">uploads/handbook/uuid.pdf</td></tr>
+<tr><td class="t-key">description</td><td class="t-type">TEXT</td><td></td><td class="t-note">Admin ghi chú (VD: "Quy chế 2024-2025")</td></tr>
+<tr><td class="t-key">status</td><td class="t-type">VARCHAR(20)</td><td></td><td class="t-note">pending | indexing | ready | failed</td></tr>
+<tr><td class="t-key">chunk_count</td><td class="t-type">INTEGER</td><td></td><td class="t-note"></td></tr>
+<tr><td class="t-key">uploaded_by</td><td class="t-type">UUID</td><td><span class="t-fk">FK → users</span></td><td class="t-note">Admin user ID</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note"></td></tr>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     DB SCHEMA (tiếp) — Bảng bổ sung quan trọng
+════════════════════════════════════════ -->
+<section id="db-schema-extra">
+<h2 class="section"><span class="icon">🔗</span> Database Schema — Bảng Bổ Sung (Audit)</h2>
+
+<div class="note y"><strong>Lý do bổ sung:</strong> Audit phát hiện 2 bảng này thiếu trong schema chính thức dù đã được nhắc đến ở các section khác. Thiếu 2 bảng này sẽ gây lỗi khi generate Alembic migration.</div>
+
+<h3 class="sub">document_chunks (RAG ↔ PostgreSQL sync)</h3>
+<div class="card teal">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note">default uuid4()</td></tr>
+<tr><td class="t-key">document_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → documents</span></td><td class="t-note">ON DELETE CASCADE — xóa doc xóa luôn chunks</td></tr>
+<tr><td class="t-key">chunk_index</td><td class="t-type">INTEGER</td><td></td><td class="t-note">Thứ tự chunk trong tài liệu (0, 1, 2...)</td></tr>
+<tr><td class="t-key">chunk_text</td><td class="t-type">TEXT</td><td></td><td class="t-note">Nội dung text thực sự của chunk</td></tr>
+<tr><td class="t-key">qdrant_point_id</td><td class="t-type">VARCHAR(36)</td><td><span class="t-idx">INDEX</span></td><td class="t-note">UUID của point bên Qdrant — dùng để xóa chính xác</td></tr>
+<tr><td class="t-key">token_count</td><td class="t-type">INTEGER</td><td></td><td class="t-note">Số tokens ước tính (phục vụ debug + quota tracking)</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note">default now()</td></tr>
+</table>
+<div class="note t" style="margin-top:0.5rem;"><strong>Mục đích:</strong> PostgreSQL là Source of Truth. Nếu Qdrant crash → re-embed từ chunk_text mà không cần user upload lại file. Khi xóa Document → query <code>qdrant_point_id</code> list → xóa Qdrant → xóa cascade DB.</div>
+</div>
+
+<h3 class="sub">message_feedback (👍/👎 — Cải thiện AI)</h3>
+<div class="card">
+<table>
+<tr><th>Column</th><th>Type</th><th>Flag</th><th>Ghi chú</th></tr>
+<tr><td class="t-key">id</td><td class="t-type">UUID</td><td><span class="t-pk">PK</span></td><td class="t-note"></td></tr>
+<tr><td class="t-key">message_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → messages</span></td><td class="t-note">ON DELETE CASCADE</td></tr>
+<tr><td class="t-key">user_id</td><td class="t-type">UUID</td><td><span class="t-fk">FK → users</span></td><td class="t-note">Ai vote</td></tr>
+<tr><td class="t-key">rating</td><td class="t-type">VARCHAR(8)</td><td></td><td class="t-note">thumbs_up | thumbs_down</td></tr>
+<tr><td class="t-key">comment</td><td class="t-type">TEXT</td><td></td><td class="t-note">Nullable — sinh viên có thể gõ thêm lý do</td></tr>
+<tr><td class="t-key">created_at</td><td class="t-type">TIMESTAMPTZ</td><td></td><td class="t-note"></td></tr>
+</table>
+<div class="note p" style="margin-top:0.5rem;"><strong>Admin dùng để làm gì:</strong> Lọc các tin nhắn AI có <code>rating=thumbs_down</code> → xem nội dung → phát hiện hallucination → cải thiện System Prompt hoặc chunking strategy.</div>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     API ENDPOINTS
+════════════════════════════════════════ -->
+<section id="api-auth">
+<h2 class="section"><span class="icon">🔐</span> API — Auth</h2>
+<pre class="http">POST   /api/v1/login/access-token     # Email + password → JWT token (existing)
+POST   /api/v1/login/test-token       # Verify token còn hợp lệ (existing)
+POST   /api/v1/password-recovery/{email}  # Gửi reset email (existing)
+POST   /api/v1/reset-password         # Reset password (existing)
+GET    /api/v1/users/me               # Get current user info (existing)
+PUT    /api/v1/users/me               # Update profile (existing)
+POST   /api/v1/users/signup           # Đăng ký tài khoản mới (existing)</pre>
+</section>
+
+<section id="api-docs">
+<h2 class="section"><span class="icon">📄</span> API — Documents</h2>
+<pre class="http">POST   /api/v1/documents/upload
+       Body: multipart/form-data { file: File }
+       Response: DocumentPublic { id, filename, status: "pending" }
+       → Trigger background task: parse → chunk → embed → index Qdrant
+
+GET    /api/v1/documents/
+       Response: list[DocumentPublic]
+       → Chỉ trả documents của current user
+
+GET    /api/v1/documents/{document_id}
+       Response: DocumentPublic { ..., status, chunk_count }
+       → Poll để check indexing progress
+
+DELETE /api/v1/documents/{document_id}
+       → Xóa file, xóa Qdrant collection chunks, xóa DB record
+       → Xóa luôn quizzes liên quan document đó</pre>
+</section>
+
+<section id="api-chat">
+<h2 class="section"><span class="icon">💬</span> API — Chat</h2>
+<pre class="http">POST   /api/v1/chat/message
+       Body: { message: str, conversation_id?: UUID, document_id?: UUID }
+       Response: Server-Sent Events (SSE stream)
+         data: {"delta": "Đây là"}\n
+         data: {"delta": " câu trả lời"}\n
+         data: {"done": true, "sources": [...], "intent": "study"}\n
+       → Classify intent → route đến RAG phù hợp → stream Gemini response
+
+GET    /api/v1/chat/conversations
+       Response: list[ConversationPublic] — sorted by updated_at DESC
+
+GET    /api/v1/chat/conversations/{conversation_id}
+       Response: { conversation: ConversationPublic, messages: list[MessagePublic] }
+
+DELETE /api/v1/chat/conversations/{conversation_id}
+       → Xóa conversation + tất cả messages
+
+POST   /api/v1/chat/messages/{message_id}/feedback
+       Body: { rating: "thumbs_up" | "thumbs_down", comment?: str }
+       Response: { ok: true }
+       → Lưu feedback vào message_feedback table</pre>
+</section>
+
+<section id="api-quiz">
+<h2 class="section"><span class="icon">❓</span> API — Quiz / MCQ</h2>
+<pre class="http">POST   /api/v1/quiz/generate
+       Body: {
+         document_id: UUID,
+         question_count: 10 | 20 | 30 | 50,
+         difficulty: "easy" | "medium" | "hard" | "mixed",
+         topic_filter?: str          # optional
+       }
+       Response: QuizPublic { id, status: "generating" }
+       → Trigger background task: retrieve chunks → Gemini sinh JSON → parse → lưu DB
+
+GET    /api/v1/quiz/{quiz_id}
+       Response: { quiz: QuizPublic, questions: list[QuestionPublic] }
+       → questions không có correct_answer + explanation (giữ bí mật khi làm)
+
+GET    /api/v1/quiz/{quiz_id}/status
+       Response: { status: "generating" | "ready" | "failed" }
+       → Frontend poll đến khi status = ready
+
+POST   /api/v1/quiz/{quiz_id}/submit
+       Body: { answers: { question_id: "A"|"B"|"C"|"D" } }
+       Response: {
+         score: 8, total: 10, percentage: 80,
+         results: [{ question_id, correct_answer, user_answer, is_correct, explanation }]
+       }
+
+GET    /api/v1/quiz/history
+       Query: ?page=1&limit=10
+       Response: list[QuizAttemptSummary] — quizzes trong 7 ngày gần nhất
+
+GET    /api/v1/quiz/{quiz_id}/result
+       Response: Kết quả attempt gần nhất (nếu đã nộp)</pre>
+</section>
+
+<section id="api-admin">
+<h2 class="section"><span class="icon">🏛️</span> API — Admin (superuser only)</h2>
+<pre class="http">GET    /api/v1/admin/users
+       Response: list[UserPublic] — tất cả users
+
+DELETE /api/v1/admin/users/{user_id}
+       → Deactivate user (is_active = false)
+
+GET    /api/v1/admin/handbook/documents
+       Response: list[HandbookDocumentPublic]
+
+POST   /api/v1/admin/handbook/upload
+       Body: multipart/form-data { file: File, description?: str }
+       Response: HandbookDocumentPublic
+       → Parse → chunk → embed → upsert vào Qdrant "handbook_shared" collection
+
+DELETE /api/v1/admin/handbook/{handbook_doc_id}
+       → Xóa file + xóa chunks trong Qdrant + xóa DB record
+
+GET    /api/v1/admin/analytics
+       Response: {
+         total_users: int,
+         total_documents: int,
+         total_quizzes_generated: int,
+         top_handbook_questions: list[str],  # câu hỏi phổ biến về sổ tay
+         avg_quiz_score: float,
+         thumbs_down_messages: int,          # Số tin nhắn AI bị đánh giá xấu
+         feedback_rate: float                # % tin nhắn có feedback
+       }
+
+GET    /api/v1/admin/feedback
+       Query: ?rating=thumbs_down&limit=50
+       Response: list[{message_id, content, rating, comment, user_id, created_at,
+                        conversation_context: list[message]}]  ← full context
+       → Admin xem các câu AI trả lời sai/tệ kèm toàn bộ hội thoại xung quanh
+
+GET    /api/v1/admin/rag-quality
+       Response: {
+         handbook_scores: [{doc_id, filename, thumbs_down_count, thumbs_up_count}],
+         bad_responses: [{message_id, content, rating_count, sources_used}]
+       }
+       → Phân tích RAG quality dựa trên feedback data
+
+GET    /api/v1/admin/health
+       Response: {
+         db: {status: "ok"|"error", latency_ms: int},
+         qdrant: {status: "ok"|"error", collections: int, vectors: int},
+         backend: {status: "ok", uptime_seconds: int},
+         system: {cpu_percent: float, ram_used_mb: int, disk_used_gb: float}
+       }
+       → Dùng thư viện psutil để đọc CPU/RAM
+
+GET    /api/v1/admin/logs
+       Query: ?level=ERROR&limit=100&search=keyword
+       Response: list[{timestamp, level, message, module}]
+       → Đọc N dòng cuối của file log, filter theo level/keyword</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     USER API — Profile
+════════════════════════════════════════ -->
+<section id="api-profile">
+<h2 class="section"><span class="icon">👤</span> API — User Profile</h2>
+<pre class="http">GET    /api/v1/users/me/profile
+       Response: { full_name, email, storage_used_bytes, storage_limit_bytes, created_at }
+
+PUT    /api/v1/users/me/profile
+       Body: { full_name?: str }
+       Response: UserPublic
+
+PUT    /api/v1/users/me/password
+       Body: { current_password: str, new_password: str }
+       Response: { ok: true }
+
+POST   /api/v1/auth/forgot-password
+       Body: { email: str }
+       Response: { message: "Email đã được gửi nếu tồn tại" }
+
+POST   /api/v1/auth/reset-password
+       Body: { token: str, new_password: str }
+       Response: { ok: true }</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     DATA FLOWS
+════════════════════════════════════════ -->
+<section id="flow-upload">
+<h2 class="section"><span class="icon">📤</span> Luồng: Upload & Index tài liệu</h2>
+<div class="flow">
+  <span class="fn t">React UploadZone</span><span class="arr">→</span>
+  <span class="fn">POST /documents/upload</span><span class="arr">→</span>
+  <span class="fn p">Validate: type, size ≤200MB</span><span class="arr">→</span>
+  <span class="fn">Lưu file → uploads/user_{id}/</span><span class="arr">→</span>
+  <span class="fn">Tạo Document record (status=pending)</span><span class="arr">→</span>
+  <span class="fn t">Trả về {id, status}</span><span class="arr">→</span>
+  <span class="fn y">Background Task bắt đầu</span>
+</div>
+<div class="flow" style="margin-top:0.5rem;">
+  <span class="fn y">Background Task</span><span class="arr">→</span>
+  <span class="fn p">status=indexing</span><span class="arr">→</span>
+  <span class="fn">Parser (PDF/DOCX/TXT/PPTX)</span><span class="arr">→</span>
+  <span class="fn">Extract raw text</span><span class="arr">→</span>
+  <span class="fn p">Chunker (500 tok, overlap 50)</span><span class="arr">→</span>
+  <span class="fn">Gemini embed mỗi chunk</span><span class="arr">→</span>
+  <span class="fn t">Upsert vào Qdrant</span><span class="arr">→</span>
+  <span class="fn">status=ready, chunk_count=N</span>
+</div>
+<div class="note t" style="margin-top:0.75rem;"><strong>Frontend polling:</strong> Sau khi upload xong, React poll GET /documents/{id}/status mỗi 2 giây cho đến khi status = ready hoặc failed.</div>
+</section>
+
+<section id="flow-intent">
+<h2 class="section"><span class="icon">🔀</span> Luồng: Intent Routing (Hybrid)</h2>
+<pre class="py">
+# intent/keywords.py
+HANDBOOK_KEYWORDS = [
+    "quy chế", "học bổng", "lịch thi", "tốt nghiệp", "thủ tục",
+    "điều kiện", "học phí", "cấm thi", "đăng ký môn", "bảo lưu",
+    "xét điểm", "cảnh báo học vụ", "nghỉ học", "phúc khảo",
+    "bằng tốt nghiệp", "sổ tay sinh viên", "nội quy", "quy định"
+]
+
+MCQ_KEYWORDS = [
+    "tạo câu hỏi", "sinh câu hỏi", "quiz", "trắc nghiệm",
+    "thi thử", "ôn tập", "bài test", "câu hỏi ôn tập",
+    "tạo bài kiểm tra", "luyện tập"
+]
+
+# intent/classifier.py
+async def classify_intent(query: str, user_has_docs: bool) -> Intent:
+    q = query.lower()
+
+    # Bước 1: Keyword matching (fast, free)
+    for kw in HANDBOOK_KEYWORDS:
+        if kw in q:
+            return Intent.HANDBOOK
+
+    for kw in MCQ_KEYWORDS:
+        if kw in q:
+            return Intent.MCQ
+
+    # Bước 2: LLM classify (chỉ khi keyword không match)
+    try:
+        prompt = f"""Phân loại câu hỏi sau vào 1 trong 3 loại:
+- STUDY: hỏi về nội dung học tập, tài liệu, môn học
+- HANDBOOK: hỏi về quy chế, thủ tục, thông tin nhà trường
+- MCQ: yêu cầu tạo câu hỏi trắc nghiệm
+
+Câu hỏi: "{query}"
+Trả lời CHỈ một trong ba từ: STUDY, HANDBOOK, MCQ"""
+
+        result = await ai_gateway.chat([ChatMessage("user", prompt)],
+                                        model="gemini-2.0-flash",
+                                        max_tokens=10)
+        return Intent[result.content.strip().upper()]
+    except Exception:
+        # Bước 3: Safe default
+        return Intent.STUDY if user_has_docs else Intent.HANDBOOK
+</pre>
+</section>
+
+<section id="flow-rag">
+<h2 class="section"><span class="icon">🔍</span> Luồng: RAG Pipeline (custom, không LlamaIndex)</h2>
+
+<h3 class="sub">Indexing (khi upload)</h3>
+<pre class="py">
+# rag/parsers/pdf.py
+import fitz  # PyMuPDF
+def parse_pdf(file_path: str) -> str:
+    doc = fitz.open(file_path)
+    return "\n".join(page.get_text() for page in doc)
+
+# rag/chunker.py
+# ⚠️ QUAN TRỌNG: chunk_size=500 là số TỪ (words), KHÔNG phải tokens.
+# ~500 từ ≈ 650-700 tokens (tiếng Việt). Đây là lựa chọn chủ ý để đơn giản.
+# Nếu muốn đếm token chính xác: pip install tiktoken, dùng cl100k_base encoding.
+def chunk_text(text: str, chunk_size=500, overlap=50) -> list[dict]:
+    """Cắt text thành chunks, trả về list[{text, start_char, index}]
+    
+    Args:
+        chunk_size: Số TỪ mỗi chunk (500 words ≈ 650 tokens tiếng Việt)
+        overlap: Số từ overlap giữa 2 chunks liên tiếp (giảm mất context)
+    """
+    words = text.split()
+    chunks = []
+    i = 0
+    while i < len(words):
+        chunk_words = words[i:i+chunk_size]
+        chunks.append({"text": " ".join(chunk_words), "index": len(chunks)})
+        i += chunk_size - overlap
+    return chunks
+
+# rag/embeddings.py
+async def embed_text(text: str) -> list[float]:
+    """Gọi Gemini text-embedding-004, trả về vector 768 chiều"""
+    response = await gemini_client.embed_content(
+        model="text-embedding-004", content=text
+    )
+    return response.embedding.values
+
+# rag/indexer.py
+async def index_document(document_id: UUID, user_id: UUID, file_path: str, file_type: str):
+    text = parse(file_path, file_type)           # parse
+    chunks = chunk_text(text)                     # chunk
+    collection = f"docs_user_{user_id}"
+    qdrant.recreate_collection(collection, ...)   # tạo collection nếu chưa có
+
+    points = []
+    for chunk in chunks:
+        vector = await embed_text(chunk["text"])  # embed
+        points.append(PointStruct(
+            id=str(uuid4()),
+            vector=vector,
+            payload={"document_id": str(document_id), "text": chunk["text"], "index": chunk["index"]}
+        ))
+    qdrant.upsert(collection_name=collection, points=points)  # lưu Qdrant
+</pre>
+
+<h3 class="sub">Retrieval (khi user hỏi)</h3>
+<pre class="py">
+# rag/retriever.py
+async def retrieve(query: str, user_id: UUID, top_k=5) -> list[dict]:
+    """Tìm top_k chunks gần nhất với câu hỏi"""
+    query_vector = await embed_text(query)
+    collection = f"docs_user_{user_id}"
+    results = qdrant.search(
+        collection_name=collection,
+        query_vector=query_vector,
+        limit=top_k
+    )
+    return [{"text": r.payload["text"], "score": r.score,
+             "document_id": r.payload["document_id"]} for r in results]
+
+# rag/pipeline.py
+# ⚠️ QUAN TRỌNG: Hàm này yield text delta để stream về FE.
+# Sau khi stream xong, route handler PHẢI lưu sources vào messages.sources (JSONB).
+# Pattern trong chat route:
+#
+#   full_text = ""
+#   sources = chunks  # lưu trước khi yield
+#   async for delta in answer_with_rag(query, user_id):
+#       full_text += delta
+#       yield f"data: {delta}\n\n"
+#   # Sau vòng lặp → lưu message + sources vào DB
+#   await crud.messages.create(conversation_id, role="assistant",
+#                               content=full_text, sources=sources)
+#   yield f"data: {json.dumps({'done': True, 'sources': sources})}\n\n"
+
+async def answer_with_rag(query: str, user_id: UUID) -> tuple[AsyncIterator[str], list[dict]]:
+    """Full RAG: retrieve → build prompt → stream Gemini.
+    
+    Returns:
+        (stream_generator, sources_list) — sources cần lưu vào DB sau khi stream xong.
+    """
+    chunks = await retrieve(query, user_id, top_k=5)
+    sources = [{"document_id": c["document_id"], "text": c["text"][:200]} for c in chunks]
+    context = "\n\n---\n\n".join(c["text"] for c in chunks)
+
+    system = "Bạn là trợ lý học tập. Trả lời dựa trên tài liệu được cung cấp. Nếu không tìm thấy thông tin, hãy nói rõ."
+    prompt = f"Tài liệu tham khảo:\n{context}\n\nCâu hỏi: {query}"
+
+    async def _stream():
+        async for chunk in ai_gateway.stream([
+            ChatMessage("system", system),
+            ChatMessage("user", prompt)
+        ], model="gemini-2.0-flash"):
+            yield chunk.delta
+
+    return _stream(), sources
+</pre>
+</section>
+
+<section id="flow-mcq">
+<h2 class="section"><span class="icon">🧪</span> Luồng: MCQ Generation</h2>
+<div class="flow">
+  <span class="fn t">React QuizGenerateForm</span><span class="arr">→</span>
+  <span class="fn">POST /quiz/generate</span><span class="arr">→</span>
+  <span class="fn">Tạo Quiz record (status=generating)</span><span class="arr">→</span>
+  <span class="fn t">Trả về {quiz_id}</span><span class="arr">→</span>
+  <span class="fn y">Background Task</span>
+</div>
+<div class="flow" style="margin-top:0.5rem;">
+  <span class="fn y">Background Task</span><span class="arr">→</span>
+  <span class="fn p">Retrieve top-20 chunks từ Qdrant</span><span class="arr">→</span>
+  <span class="fn">Build MCQ prompt</span><span class="arr">→</span>
+  <span class="fn t">Gemini generate JSON</span><span class="arr">→</span>
+  <span class="fn p">Validate + parse JSON</span><span class="arr">→</span>
+  <span class="fn">Lưu questions vào DB</span><span class="arr">→</span>
+  <span class="fn">status=ready</span>
+</div>
+<pre class="py" style="margin-top:0.75rem;">
+# MCQ Prompt gửi cho Gemini
+MCQ_PROMPT = """Dựa vào nội dung tài liệu sau, hãy tạo {count} câu hỏi trắc nghiệm
+độ khó {difficulty} bằng tiếng Việt.
+
+Tài liệu:
+{context}
+
+Yêu cầu output JSON (KHÔNG có text thêm vào):
+{{
+  "questions": [
+    {{
+      "question": "Nội dung câu hỏi?",
+      "options": {{"A": "...", "B": "...", "C": "...", "D": "..."}},
+      "answer": "A",
+      "explanation": "Giải thích tại sao A đúng...",
+      "source_chunk": "Đoạn văn gốc từ tài liệu..."
+    }}
+  ]
+}}
+
+Đảm bảo: câu hỏi đa dạng, không trùng lặp, options đủ 4, answer là A/B/C/D."""
+</pre>
+</section>
+
+<section id="flow-chat">
+<h2 class="section"><span class="icon">🔄</span> Luồng: Chat (end-to-end)</h2>
+<div class="flow">
+  <span class="fn t">User gõ câu hỏi</span><span class="arr">→</span>
+  <span class="fn">POST /chat/message</span><span class="arr">→</span>
+  <span class="fn p">classify_intent(query)</span><span class="arr">→</span>
+</div>
+<div style="margin:0.5rem 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">
+  <div class="flow" style="flex-direction:column;align-items:flex-start;">
+    <div style="font-size:0.75rem;font-weight:700;color:var(--accent);margin-bottom:0.3rem;">STUDY intent</div>
+    <span class="fn p">Retrieve từ Qdrant<br>docs_user_{id}</span>
+    <div class="arr" style="margin:0.25rem 0;">↓</div>
+    <span class="fn">Build context prompt</span>
+    <div class="arr" style="margin:0.25rem 0;">↓</div>
+    <span class="fn t">Stream Gemini</span>
+  </div>
+  <div class="flow" style="flex-direction:column;align-items:flex-start;">
+    <div style="font-size:0.75rem;font-weight:700;color:var(--orange);margin-bottom:0.3rem;">HANDBOOK intent</div>
+    <span class="fn o">Retrieve từ Qdrant<br>handbook_shared</span>
+    <div class="arr" style="margin:0.25rem 0;">↓</div>
+    <span class="fn">Build context prompt</span>
+    <div class="arr" style="margin:0.25rem 0;">↓</div>
+    <span class="fn t">Stream Gemini</span>
+  </div>
+  <div class="flow" style="flex-direction:column;align-items:flex-start;">
+    <div style="font-size:0.75rem;font-weight:700;color:var(--teal);margin-bottom:0.3rem;">MCQ intent</div>
+    <span class="fn y">Redirect user đến<br>QuizGeneratePage</span>
+    <div class="arr" style="margin:0.25rem 0;">↓</div>
+    <span class="fn">Hoặc auto-trigger<br>quiz generation</span>
+  </div>
+</div>
+<div class="flow" style="margin-top:0.5rem;">
+  <span class="fn t">SSE stream về React</span><span class="arr">→</span>
+  <span class="fn">Render StreamingText</span><span class="arr">→</span>
+  <span class="fn">Lưu message vào DB</span><span class="arr">→</span>
+  <span class="fn">Hiển thị SourceCitation</span>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     AI GATEWAY
+════════════════════════════════════════ -->
+<section id="ai-gateway">
+<h2 class="section"><span class="icon">🤖</span> AI Gateway Design</h2>
+<pre class="py">
+# ai/providers/base.py
+from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
+
+class AIProvider(ABC):
+    name: str
+    @abstractmethod
+    async def chat(self, messages, model, temperature, max_tokens, **kw) -> ChatResponse: ...
+    @abstractmethod
+    async def stream(self, messages, model, temperature, max_tokens, **kw) -> AsyncIterator[StreamChunk]: ...
+    @abstractmethod
+    async def embed(self, text: str, model: str, **kw) -> list[float]: ...
+    @abstractmethod
+    async def health_check(self) -> bool: ...
+
+# Phân loại lỗi để quyết định fallback hay không
+class RateLimitError(Exception): should_fallback = True   # 429, quota exceeded
+class TimeoutError(Exception):   should_fallback = True   # request timeout
+class ServerError(Exception):    should_fallback = True   # 5xx
+class InvalidRequestError(Exception): should_fallback = False  # 400, bad prompt
+class ContentPolicyError(Exception):  should_fallback = False  # content filtered
+
+# ai/router/model_router.py
+class ModelRouter:
+    def __init__(self):
+        self.providers = {
+            "gemini": GeminiProvider(api_key=settings.GEMINI_API_KEY),
+            "nvidia": NvidiaProvider(api_key=settings.NVIDIA_API_KEY),
+            "groq":   GroqProvider(api_key=settings.GROQ_API_KEY),
+        }
+        self.chain = ["gemini", "nvidia", "groq"]  # fallback order
+
+    async def chat(self, messages, **kwargs) -> ChatResponse:
+        for provider_name in self.chain:
+            provider = self.providers[provider_name]
+            try:
+                return await provider.chat(messages, **kwargs)
+            except Exception as e:
+                if not getattr(e, "should_fallback", True):
+                    raise  # Lỗi không fallback (bad request, content policy)
+                # Log và thử provider tiếp theo
+                logger.warning(f"{provider_name} failed: {e}, trying next...")
+        raise Exception("All providers failed")
+</pre>
+</section>
+
+<section id="ai-providers">
+<h2 class="section"><span class="icon">🔌</span> AI Providers</h2>
+<div class="g3">
+  <div class="card purple">
+    <h3 class="sub">Gemini (chính)</h3>
+    <div style="font-size:0.82rem;color:var(--muted);">
+      <div>Chat: <code>gemini-2.0-flash</code></div>
+      <div>Embed: <code>text-embedding-004</code></div>
+      <div>Free: 1,500 req/ngày, 15 RPM</div>
+      <div style="margin-top:0.5rem;">Lib: <code>google-genai</code></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 class="sub">NVIDIA Build (fallback 1)</h3>
+    <div style="font-size:0.82rem;color:var(--muted);">
+      <div>Model: <code>meta/llama-3.3-70b-instruct</code></div>
+      <div>Base URL: <code>integrate.api.nvidia.com/v1</code></div>
+      <div>Free: 1,000 credits</div>
+      <div style="margin-top:0.5rem;">API: OpenAI-compatible → dùng <code>openai</code> lib</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 class="sub">Groq (fallback 2)</h3>
+    <div style="font-size:0.82rem;color:var(--muted);">
+      <div>Model: <code>llama-3.3-70b-versatile</code></div>
+      <div>Base URL: <code>api.groq.com/openai/v1</code></div>
+      <div>Free: 30 RPM, rất nhanh</div>
+      <div style="margin-top:0.5rem;">API: OpenAI-compatible</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     FRONTEND PAGES
+════════════════════════════════════════ -->
+<section id="fe-pages">
+<h2 class="section"><span class="icon">📱</span> Frontend — Pages & Routes (Đầy đủ)</h2>
+
+<div class="note r">
+  <strong>NGUYÊN TẮC BẮT BUỘC — Reusable Components First:</strong>
+  Mọi UI element có thể xuất hiện ở 2+ nơi PHẢI được tách thành component độc lập.
+  Pages chỉ là "bộ khung" — ghép các components lại. KHÔNG viết logic lặp lại trong page.
+  <br><br>
+  <strong>Quy tắc kiểm tra:</strong> Nếu copy-paste code giống hệt nhau ở 2 file → DỪNG LẠI → tách thành component.
+</div>
+
+<h3 class="sub">🌐 Public Routes (Không cần login)</h3>
+<pre class="tree">
+/                               → LandingPage.tsx
+  ├── HeroSection.tsx            [COMPONENT] Banner chính, tagline, CTA "Đăng ký miễn phí"
+  ├── FeatureCards.tsx           [COMPONENT - Tái dùng Card từ /ui] 3 tính năng chính
+  ├── DemoPreview.tsx            [COMPONENT] Animated preview chat/quiz không cần login
+  ├── HowItWorksSection.tsx      [COMPONENT] 3 bước: Upload → Chat → Quiz
+  └── CTASection.tsx             [COMPONENT] Banner cuối trang, nút Đăng ký
+
+/about                          → AboutPage.tsx (optional — nếu cần cho SEO)
+</pre>
+
+<h3 class="sub">🔐 Auth Routes (Khách chưa login)</h3>
+<pre class="tree">
+/login                          → LoginPage.tsx
+  └── AuthForm.tsx               [COMPONENT - Tái dùng cho login + register] Form email/pass
+
+/register                       → RegisterPage.tsx
+  └── AuthForm.tsx               [COMPONENT - Tái dùng] Cùng component, chỉ đổi mode prop
+
+/forgot-password                → ForgotPasswordPage.tsx
+  └── EmailInputForm.tsx         [COMPONENT] Input email + submit
+
+/reset-password?token=...       → ResetPasswordPage.tsx
+  └── NewPasswordForm.tsx        [COMPONENT] Input mật khẩu mới + confirm
+</pre>
+
+<div class="note p"><strong>Lazy Auth Pattern:</strong> User có thể vào Landing Page, xem giới thiệu tự do. Khi bấm "Tạo Quiz" hay "Chat với tài liệu" mà chưa login → redirect đến <code>/login?redirect=/quiz/generate</code> → sau khi login tự quay lại trang cũ. KHÔNG chặn ngay từ đầu.</div>
+
+<h3 class="sub">👤 Student Routes (Cần login)</h3>
+<pre class="tree">
+/dashboard                      → DashboardPage.tsx
+  ├── WelcomeBanner.tsx          [COMPONENT] Tên user + storage bar
+  ├── RecentDocumentsList.tsx    [COMPONENT - Tái dùng từ /documents]
+  ├── RecentQuizList.tsx         [COMPONENT - Tái dùng từ /history]
+  └── QuickChatShortcut.tsx      [COMPONENT] Nút nhanh vào chat
+
+/documents                      → DocumentsPage.tsx
+  ├── UploadZone.tsx             [COMPONENT] Drag-drop, validate type/size, progress bar
+  ├── DocumentCard.tsx           [COMPONENT] Card 1 tài liệu — tái dùng ở Dashboard
+  ├── DocumentList.tsx           [COMPONENT] Grid DocumentCard
+  └── IndexingStatusBadge.tsx    [COMPONENT] Badge pending/indexing/ready/failed — tái dùng
+
+/chat                           → ChatPage.tsx
+  ├── ConversationSidebar.tsx    [COMPONENT] Danh sách hội thoại + nút New
+  ├── ChatWindow.tsx             [COMPONENT] Container messages
+  ├── MessageBubble.tsx          [COMPONENT - QUAN TRỌNG] User/AI bubble + nút 👍👎
+  │     └── FeedbackButtons.tsx  [COMPONENT] Thumbs up/down — tái dùng ở /history
+  ├── StreamingText.tsx          [COMPONENT] Render text AI từng ký tự
+  ├── SourceCitation.tsx         [COMPONENT] Hiển thị nguồn trích dẫn
+  └── ChatInput.tsx              [COMPONENT] Textarea + send button
+
+/quiz/generate                  → QuizGeneratePage.tsx
+  ├── DocumentSelector.tsx       [COMPONENT - Tái dùng] Dropdown chọn tài liệu
+  ├── DifficultyPicker.tsx       [COMPONENT] easy/medium/hard/mixed
+  ├── QuestionCountPicker.tsx    [COMPONENT] 10/20/30/50
+  └── AsyncButton.tsx            [COMPONENT - GLOBAL] Nút tự hiện spinner khi click
+
+/quiz/:id/do                    → QuizDoPage.tsx
+  ├── QuizProgressBar.tsx        [COMPONENT] Animated progress — UIverse style
+  ├── QuestionCard.tsx           [COMPONENT - QUAN TRỌNG] 1 câu hỏi + options
+  ├── OptionButton.tsx           [COMPONENT] Nút A/B/C/D — UIverse animation
+  └── QuizNavigation.tsx         [COMPONENT] Prev/Next/Submit
+
+/quiz/:id/result                → QuizResultPage.tsx
+  ├── ScoreDisplay.tsx           [COMPONENT] % điểm + vòng tròn animated
+  ├── QuestionReview.tsx         [COMPONENT] Từng câu: đúng/sai + giải thích
+  └── ExplanationBox.tsx         [COMPONENT] Accordion giải thích
+
+/history                        → HistoryPage.tsx
+  └── QuizAttemptRow.tsx         [COMPONENT] 1 hàng lịch sử — click xem lại result
+
+/profile                        → ProfilePage.tsx
+  ├── StorageUsageBar.tsx        [COMPONENT - Tái dùng từ Dashboard]
+  ├── EditProfileForm.tsx        [COMPONENT] Tên + email
+  └── ChangePasswordForm.tsx     [COMPONENT] Old pass → New pass
+</pre>
+
+<h3 class="sub">🏛️ Admin Routes (is_superuser = true)</h3>
+<pre class="tree">
+/admin                          → AdminDashboard.tsx
+  ├── StatCard.tsx               [COMPONENT - GLOBAL] Card số liệu — tái dùng khắp admin
+  ├── QuickHealthWidget.tsx      [COMPONENT] Trạng thái nhanh: DB✅ Qdrant✅ AI✅
+  └── AlertBanner.tsx            [COMPONENT] Hiển thị lỗi nghiêm trọng (ERROR log)
+
+/admin/feedback                 → FeedbackPage.tsx  ← MỚI
+  ├── FeedbackFilterBar.tsx      [COMPONENT] Filter: thumbs_up/down, date range
+  ├── FeedbackTable.tsx          [COMPONENT] Bảng feedback với expand xem conversation
+  └── ConversationPreview.tsx    [COMPONENT] Modal xem full hội thoại xung quanh feedback
+
+/admin/rag-quality              → RAGQualityPage.tsx  ← MỚI
+  ├── HandbookScoreTable.tsx     [COMPONENT] Tài liệu nào có thumbs_down nhiều nhất
+  ├── BadResponseList.tsx        [COMPONENT] Danh sách câu AI trả lời tệ (có trích nguồn)
+  └── RAGActionPanel.tsx         [COMPONENT] Nút "Xóa & Re-upload" tài liệu
+
+/admin/handbook                 → HandbookPage.tsx
+  ├── HandbookUploadZone.tsx     [COMPONENT - Kế thừa UploadZone.tsx]
+  └── HandbookTable.tsx          [COMPONENT] Danh sách tài liệu + status + xóa
+
+/admin/users                    → UsersPage.tsx
+  └── UserTable.tsx              [COMPONENT] Bảng users + toggle active/deactive
+
+/admin/analytics                → AnalyticsPage.tsx
+  ├── StatCard.tsx               [COMPONENT - Tái dùng từ AdminDashboard]
+  └── TopQuestionsChart.tsx      [COMPONENT] Top câu hỏi hay được hỏi
+
+/admin/health                   → SystemHealthPage.tsx  ← MỚI
+  ├── ServiceStatusCard.tsx      [COMPONENT] PostgreSQL/Qdrant/Backend — Online/Offline
+  ├── ResourceGauge.tsx          [COMPONENT] CPU/RAM dạng gauge bar
+  └── APIMetricsTable.tsx        [COMPONENT] Avg response time, error rate
+
+/admin/logs                     → LogViewerPage.tsx  ← MỚI
+  ├── LogFilterBar.tsx           [COMPONENT] Filter: ERROR/WARNING/INFO, keyword search
+  ├── LogEntry.tsx               [COMPONENT] 1 dòng log — màu theo level
+  └── LogTable.tsx               [COMPONENT] Danh sách LogEntry + auto-refresh mỗi 10s
+</pre>
+
+<div class="note t">
+  <strong>Danh sách GLOBAL Components (dùng ở mọi nơi — tạo trước tiên):</strong>
+  <code>AsyncButton</code> · <code>StatCard</code> · <code>EmptyState</code> ·
+  <code>StatusBadge</code> · <code>ErrorState</code> · <code>PageHeader</code> ·
+  <code>ConfirmDialog</code> · <code>LoadingSkeleton</code> · <code>Toast</code>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     DOCKER
+════════════════════════════════════════ -->
+<section id="docker">
+<h2 class="section"><span class="icon">🐳</span> Docker Compose</h2>
+<pre class="yaml">
+services:
+
+  # ── Database ──────────────────────
+  db:
+    image: postgres:17
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: studyai
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d studyai"]
+      interval: 10s; retries: 5
+
+  # ── Vector Database ────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "6333:6333"    # REST API (internal only — không expose production)
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+
+  # ── Backend ───────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    depends_on:
+      db: {condition: service_healthy}
+      qdrant: {condition: service_started}
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/studyai
+      QDRANT_URL: http://qdrant:6333
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      UPLOAD_MAX_SIZE_MB: 200
+      QUIZ_EXPIRY_DAYS: 7
+    volumes:
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+
+  # ── Frontend + Nginx (production) ─
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile      # multi-stage: build React → serve với nginx
+    depends_on: [backend]
+
+  # ── Reverse Proxy ─────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"    # SSL sau này
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on: [frontend, backend]
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  uploads_data:</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     NGINX CONFIG
+════════════════════════════════════════ -->
+<section id="nginx-config">
+<h2 class="section"><span class="icon">⚙️</span> Nginx Config Mẫu (Critical cho SSE)</h2>
+<div class="note r"><strong>Cảnh báo:</strong> Nếu thiếu <code>proxy_buffering off</code>, Nginx sẽ buffer toàn bộ SSE stream và chỉ gửi về browser một lần khi AI trả lời xong — phá vỡ hoàn toàn tính năng Streaming Chat.</div>
+<pre class="yaml">
+# nginx/nginx.conf
+
+server {
+    listen 80;
+    server_name yourdomain.com;
+    # Redirect HTTP → HTTPS (bắt buộc sau khi có SSL)
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    # SSL (Let's Encrypt — chạy: certbot --nginx -d yourdomain.com)
+    ssl_certificate     /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+
+    # Upload limit (phải khớp với UPLOAD_MAX_SIZE_MB trong .env)
+    client_max_body_size 200m;
+
+    # ── Backend API ─────────────────────────────────────
+    location /api/ {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        # ⚠️ BẮT BUỘC cho SSE (Server-Sent Events / Streaming Chat)
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_set_header X-Accel-Buffering no;
+        proxy_read_timeout 300s;   # AI có thể trả lời lâu — không timeout sớm
+        proxy_connect_timeout 60s;
+    }
+
+    # ── Frontend (React SPA) ────────────────────────────
+    location / {
+        proxy_pass http://frontend:80;
+        proxy_set_header Host $host;
+
+        # React Router — fallback 404 về index.html
+        try_files $uri $uri/ /index.html;
+    }
+}
+</pre>
+<div class="note t">Sau khi deploy: <code>sudo certbot --nginx -d yourdomain.com</code> để bật HTTPS miễn phí. Certbot sẽ tự động sửa nginx.conf và cài cron job gia hạn SSL.</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     ENVIRONMENT VARIABLES
+════════════════════════════════════════ -->
+<section id="env">
+<h2 class="section"><span class="icon">🔑</span> Environment Variables (.env.example)</h2>
+<pre class="env">
+# ── Project ──────────────────────────────
+PROJECT_NAME=AI Student Assistant
+FASTAPI_ENV=development           # hoặc production
+
+# ── Auth (JWT) ────────────────────────────
+SECRET_KEY=changethis-very-long-random-string
+ACCESS_TOKEN_EXPIRE_MINUTES=10080  # 7 days
+FIRST_SUPERUSER=admin@example.com
+FIRST_SUPERUSER_PASSWORD=changethis
+
+# ── CORS (phân cách bằng dấu phẩy) ────────
+# Dev local: http://localhost:5173
+# Production: https://yourdomain.com
+BACKEND_CORS_ORIGINS=http://localhost:5173,https://yourdomain.com
+
+# ── Database ──────────────────────────────
+POSTGRES_PASSWORD=changethis
+DATABASE_URL=postgresql://postgres:changethis@db:5432/studyai
+
+# ── Vector Database ───────────────────────
+QDRANT_URL=http://qdrant:6333
+
+# ── AI Providers ──────────────────────────
+GEMINI_API_KEY=AIza...
+GEMINI_CHAT_MODEL=gemini-2.0-flash
+GEMINI_EMBED_MODEL=text-embedding-004
+
+NVIDIA_API_KEY=nvapi-...
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+NVIDIA_CHAT_MODEL=meta/llama-3.3-70b-instruct
+
+GROQ_API_KEY=gsk_...
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+GROQ_CHAT_MODEL=llama-3.3-70b-versatile
+
+# ── Fallback Policy ───────────────────────
+AI_PROVIDER_ORDER=gemini,nvidia,groq   # thứ tự fallback
+
+# ── Upload ────────────────────────────────
+UPLOAD_MAX_SIZE_MB=200
+UPLOAD_ALLOWED_TYPES=pdf,docx,txt,pptx
+UPLOAD_BASE_DIR=./uploads
+
+# ── Quiz ──────────────────────────────────
+QUIZ_EXPIRY_DAYS=7
+QUIZ_MAX_QUESTIONS=50
+
+# ── CORS ──────────────────────────────────
+FRONTEND_HOST=http://localhost:5173    # dev
+# FRONTEND_HOST=https://yourdomain.com  # production
+
+# ── Optional ──────────────────────────────
+SENTRY_DSN=</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     VPS
+════════════════════════════════════════ -->
+<section id="vps">
+<h2 class="section"><span class="icon">🖥️</span> VPS Specs & Deployment</h2>
+<div class="g2">
+  <div class="card teal">
+    <h3 class="sub">Specs đã chốt ✅</h3>
+    <table>
+      <tr><td style="color:var(--muted);font-size:0.82rem;width:100px;">CPU</td><td style="font-weight:700;color:var(--teal);">4 vCPU</td></tr>
+      <tr><td style="color:var(--muted);font-size:0.82rem;">RAM</td><td style="font-weight:700;color:var(--teal);">8 GB</td></tr>
+      <tr><td style="color:var(--muted);font-size:0.82rem;">SSD</td><td style="font-weight:700;color:var(--teal);">80 GB</td></tr>
+      <tr><td style="color:var(--muted);font-size:0.82rem;">OS</td><td style="font-weight:700;color:var(--teal);">Ubuntu 24.04 LTS</td></tr>
+      <tr><td style="color:var(--muted);font-size:0.82rem;">RAM dùng</td><td style="color:var(--muted);font-size:0.82rem;">~2–2.5 GB (còn ~5.5 GB)</td></tr>
+      <tr><td style="color:var(--muted);font-size:0.82rem;">SSD dùng</td><td style="color:var(--muted);font-size:0.82rem;">~30–40 GB (còn ~40 GB)</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 class="sub">Deploy Commands</h3>
+    <pre class="yaml" style="font-size:0.78rem;">
+# Lần đầu deploy
+git clone &lt;repo&gt;
+cd project
+cp .env.example .env
+# Sửa .env: điền API keys, passwords, BACKEND_CORS_ORIGINS
+
+docker compose up -d --build
+
+# Alembic Migration Workflow (BẮT BUỘC đọc)
+# ───────────────────────────────────────────
+# 1. Khi thêm/sửa model SQLModel → tạo migration mới:
+docker compose exec backend alembic revision --autogenerate -m "add document_chunks table"
+
+# 2. Apply migration lên DB:
+docker compose exec backend alembic upgrade head
+
+# 3. Rollback 1 bước nếu có lỗi:
+docker compose exec backend alembic downgrade -1
+
+# 4. Xem lịch sử migrations:
+docker compose exec backend alembic history
+
+# Tạo superuser (auto qua initial_data.py)
+docker compose exec backend python app/initial_data.py
+
+# Xem logs
+docker compose logs -f backend</pre>
+  </div>
+</div>
+
+<h3 class="sub">Nginx Config (routing)</h3>
+<pre class="yaml">
+server {
+  listen 80;
+  server_name yourdomain.com;
+
+  # Frontend (React static)
+  location / {
+    proxy_pass http://frontend:80;
+  }
+
+  # Backend API
+  location /api/ {
+    proxy_pass http://backend:8000;
+    proxy_set_header X-Real-IP $remote_addr;
+
+    # SSE streaming (chat)
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 300s;
+  }
+}</pre>
+
+<div class="note y" style="margin-top:0.75rem;"><strong>Cron Job xóa quiz expired:</strong> Thêm vào FastAPI startup event: chạy cleanup mỗi ngày lúc 2:00 sáng. Xóa tất cả quiz có expires_at &lt; NOW(). Dùng APScheduler hoặc đơn giản hơn: check khi user GET /quiz/history.</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     SEO
+════════════════════════════════════════ -->
+<section id="seo">
+<h2 class="section"><span class="icon">🔍</span> SEO — Search Engine Optimization</h2>
+
+<div class="note p"><strong>Bối cảnh:</strong> Đây là React SPA (Single Page App). SPA mặc định rất kém SEO vì Google thấy HTML rỗng. Giải pháp: Public pages (landing, login) là static HTML; các trang app (chat, quiz) không cần SEO vì chỉ dành cho user đã đăng nhập.</div>
+
+<h3 class="sub">Phân vùng SEO</h3>
+<div class="g2">
+  <div class="card teal">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.6rem;">Cần SEO (public pages)</div>
+    <table>
+      <tr><td class="t-key">/</td><td class="t-note">Landing page — giới thiệu platform</td></tr>
+      <tr><td class="t-key">/about</td><td class="t-note">Về hệ thống</td></tr>
+      <tr><td class="t-key">/login</td><td class="t-note">Trang đăng nhập</td></tr>
+      <tr><td class="t-key">/register</td><td class="t-note">Trang đăng ký</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--muted);margin-bottom:0.6rem;">Không cần SEO (app pages — auth required)</div>
+    <table>
+      <tr><td class="t-key">/dashboard</td><td class="t-note">Cần đăng nhập</td></tr>
+      <tr><td class="t-key">/chat</td><td class="t-note">Cần đăng nhập</td></tr>
+      <tr><td class="t-key">/quiz/*</td><td class="t-note">Cần đăng nhập</td></tr>
+      <tr><td class="t-key">/admin/*</td><td class="t-note">Cần superuser</td></tr>
+    </table>
+  </div>
+</div>
+
+<h3 class="sub">Frontend — React Helmet Async (meta tags động)</h3>
+<pre class="py">
+# Cài: npm install react-helmet-async
+
+# src/components/SEO/MetaTags.tsx
+import { Helmet } from 'react-helmet-async';
+
+interface MetaTagsProps {
+  title: string;
+  description: string;
+  ogImage?: string;
+  canonical?: string;
+}
+
+export function MetaTags({ title, description, ogImage, canonical }: MetaTagsProps) {
+  const siteTitle = "StudyAI — Hệ thống học tập thông minh";
+  const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
+
+  return (
+    &lt;Helmet&gt;
+      &lt;title&gt;{fullTitle}&lt;/title&gt;
+      &lt;meta name="description" content={description} /&gt;
+      &lt;link rel="canonical" href={canonical ?? window.location.href} /&gt;
+
+      {/* Open Graph — Facebook, Zalo, LinkedIn */}
+      &lt;meta property="og:title" content={fullTitle} /&gt;
+      &lt;meta property="og:description" content={description} /&gt;
+      &lt;meta property="og:type" content="website" /&gt;
+      &lt;meta property="og:image" content={ogImage ?? "/og-image.png"} /&gt;
+      &lt;meta property="og:locale" content="vi_VN" /&gt;
+
+      {/* Twitter Card */}
+      &lt;meta name="twitter:card" content="summary_large_image" /&gt;
+      &lt;meta name="twitter:title" content={fullTitle} /&gt;
+      &lt;meta name="twitter:description" content={description} /&gt;
+
+      {/* Robots */}
+      &lt;meta name="robots" content="index, follow" /&gt;
+      &lt;meta name="language" content="Vietnamese" /&gt;
+    &lt;/Helmet&gt;
+  );
+}
+
+# Dùng trong LandingPage.tsx:
+&lt;MetaTags
+  title="Hỗ trợ học tập thông minh với AI"
+  description="Nền tảng AI giúp sinh viên phân tích tài liệu, tự động sinh câu hỏi trắc nghiệm và tra cứu sổ tay sinh viên."
+/&gt;</pre>
+
+<h3 class="sub">Technical SEO — Files cần tạo</h3>
+<div class="g2">
+  <div class="card">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:0.5rem;">public/robots.txt</div>
+    <pre class="py" style="font-size:0.78rem;">User-agent: *
+Allow: /
+Allow: /about
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /quiz
+Disallow: /admin
+Sitemap: https://yourdomain.com/sitemap.xml</pre>
+  </div>
+  <div class="card">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:0.5rem;">public/sitemap.xml</div>
+    <pre class="py" style="font-size:0.78rem;">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://yourdomain.com/&lt;/loc&gt;
+    &lt;priority&gt;1.0&lt;/priority&gt;
+    &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+  &lt;/url&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://yourdomain.com/login&lt;/loc&gt;
+    &lt;priority&gt;0.8&lt;/priority&gt;
+  &lt;/url&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://yourdomain.com/register&lt;/loc&gt;
+    &lt;priority&gt;0.8&lt;/priority&gt;
+  &lt;/url&gt;
+&lt;/urlset&gt;</pre>
+  </div>
+</div>
+
+<h3 class="sub">Structured Data — JSON-LD (đặt trong index.html)</h3>
+<pre class="py">
+&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "StudyAI",
+  "description": "Hệ thống hỗ trợ học tập thông minh ứng dụng LLM trong phân tích tài liệu và tự động sinh câu hỏi trắc nghiệm",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "VND"
+  },
+  "featureList": [
+    "Phân tích tài liệu PDF/DOCX/TXT bằng AI",
+    "Tự động sinh câu hỏi trắc nghiệm",
+    "Chat hỏi đáp về sổ tay sinh viên",
+    "Lưu lịch sử ôn tập 7 ngày"
+  ],
+  "inLanguage": "vi",
+  "audience": {
+    "@type": "EducationalAudience",
+    "educationalRole": "student"
+  }
+}
+&lt;/script&gt;
+
+&lt;!-- FAQ Schema (đặt trên landing page) --&gt;
+&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Hệ thống này làm gì?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "StudyAI giúp sinh viên upload tài liệu học tập, AI tự động tạo câu hỏi trắc nghiệm và hỗ trợ chat hỏi đáp về nội dung tài liệu."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "AI được dùng là gì?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hệ thống sử dụng Google Gemini 2.0 Flash làm model chính, với RAG pipeline tự xây dựng trên Qdrant."
+      }
+    }
+  ]
+}
+&lt;/script&gt;</pre>
+
+<h3 class="sub">Core Web Vitals — Performance checklist</h3>
+<div class="g3">
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.5rem;">LCP &lt; 2.5s</div>
+    <ul style="font-size:0.79rem;color:var(--muted);margin-left:1rem;">
+      <li>Hero image có width/height attribute</li>
+      <li>Preload critical fonts</li>
+      <li>Tách landing page khỏi app bundle</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.5rem;">FID / INP &lt; 200ms</div>
+    <ul style="font-size:0.79rem;color:var(--muted);margin-left:1rem;">
+      <li>React lazy() cho route-level splitting</li>
+      <li>Không block main thread khi load</li>
+      <li>TanStack Query cache tốt</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.5rem;">CLS &lt; 0.1</div>
+    <ul style="font-size:0.79rem;color:var(--muted);margin-left:1rem;">
+      <li>Set width/height cho images</li>
+      <li>Skeleton loaders (ReUI Skeleton)</li>
+      <li>Tránh inject DOM sau render</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     GEO
+════════════════════════════════════════ -->
+<section id="geo">
+<h2 class="section"><span class="icon">🤖</span> GEO — Generative Engine Optimization</h2>
+
+<div class="note t"><strong>GEO là gì?</strong> Tối ưu để AI Search engines (ChatGPT, Perplexity, Google AI Overviews, Gemini, Copilot) trích dẫn và hiểu đúng về sản phẩm của bạn khi ai đó hỏi về "công cụ học tập AI cho sinh viên".</div>
+
+<h3 class="sub">3 nguyên tắc GEO cốt lõi</h3>
+<div class="g3">
+  <div class="card purple">
+    <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.4rem;">1. Clarity (Rõ ràng)</div>
+    <div style="font-size:0.8rem;color:var(--muted);">AI cần hiểu ngay bạn là gì, làm gì, cho ai, khác gì đối thủ. Không dùng ngôn ngữ marketing mơ hồ. Nói thẳng, cụ thể, có số liệu.</div>
+  </div>
+  <div class="card purple">
+    <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.4rem;">2. Authority (Uy tín)</div>
+    <div style="font-size:0.8rem;color:var(--muted);">Structured data đầy đủ, citations rõ ràng, tên tác giả/tổ chức cụ thể. AI ưu tiên nguồn có tên rõ ràng và có thể verify.</div>
+  </div>
+  <div class="card purple">
+    <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.4rem;">3. Coverage (Bao phủ)</div>
+    <div style="font-size:0.8rem;color:var(--muted);">Trả lời trước các câu hỏi mà AI sẽ hỏi về tool của bạn. FAQ schema, feature list đầy đủ, use cases cụ thể.</div>
+  </div>
+</div>
+
+<h3 class="sub">Landing Page — Viết theo chuẩn GEO</h3>
+<pre class="py">
+# Cấu trúc landing page cần có (theo thứ tự):
+
+1. H1 rõ ràng — không dùng slogan:
+   ❌ "Tương lai của giáo dục bắt đầu từ đây"
+   ✅ "Nền tảng AI tự động sinh câu hỏi trắc nghiệm từ tài liệu PDF/DOCX của bạn"
+
+2. Description paragraph (50-160 ký tự):
+   "StudyAI giúp sinh viên upload tài liệu học tập, sử dụng Gemini AI để tự động
+   tạo bộ câu hỏi trắc nghiệm (tối đa 50 câu) và hỗ trợ chat hỏi đáp về nội dung
+   tài liệu hoặc sổ tay sinh viên."
+
+3. Feature list — dạng bullet rõ, có số:
+   • Sinh tự động đến 50 câu trắc nghiệm từ 1 tài liệu
+   • Hỗ trợ PDF, DOCX, TXT, PPTX
+   • Chat hỏi đáp về sổ tay sinh viên với AI
+   • Lưu lịch sử quiz 7 ngày để ôn tập lại
+   • Sử dụng Google Gemini 2.0 Flash + RAG pipeline
+
+4. FAQ section (FAQPage schema):
+   Q: Cần cài gì không?
+   A: Không — chạy hoàn toàn trên web browser.
+
+   Q: Dữ liệu tài liệu có bị chia sẻ không?
+   A: Không. Tài liệu được lưu riêng theo từng tài khoản, không chia sẻ.
+
+   Q: Hỗ trợ ngôn ngữ nào?
+   A: Tiếng Việt và tiếng Anh. Câu hỏi được sinh theo ngôn ngữ của tài liệu.
+
+5. About/Author section:
+   "Được phát triển bởi [Tên bạn] trong khuôn khổ đề tài tốt nghiệp
+   ngành [Ngành học], [Tên trường], [Năm]."</pre>
+
+<h3 class="sub">Metadata cụ thể AI Search engines đọc</h3>
+<pre class="py">
+# Thêm vào &lt;head&gt; của index.html
+
+# 1. Mô tả rõ cho AI crawlers
+&lt;meta name="description"
+  content="StudyAI — Nền tảng web hỗ trợ sinh viên học tập thông minh.
+  Tự động sinh câu hỏi trắc nghiệm từ tài liệu PDF/DOCX/TXT bằng Google Gemini AI.
+  Chat hỏi đáp về sổ tay sinh viên. Lưu quiz 7 ngày. Miễn phí." /&gt;
+
+# 2. OpenGraph (Zalo, Facebook chia sẻ link)
+&lt;meta property="og:title" content="StudyAI — Sinh câu hỏi trắc nghiệm từ tài liệu bằng AI" /&gt;
+&lt;meta property="og:description"
+  content="Upload tài liệu học tập → AI tự động tạo bộ câu hỏi trắc nghiệm + chat hỏi đáp" /&gt;
+&lt;meta property="og:image" content="https://yourdomain.com/og-image.png" /&gt;
+  {/* og-image: 1200x630px, screenshot đẹp của UI */}
+
+# 3. Schema — Organization (cho Author authority)
+{
+  "@type": "Organization",
+  "name": "StudyAI",
+  "url": "https://yourdomain.com",
+  "description": "...",
+  "founder": {
+    "@type": "Person",
+    "name": "[Tên bạn]",
+    "affiliation": { "@type": "EducationalOrganization", "name": "[Tên trường]" }
+  }
+}
+
+# 4. LLMs.txt — File đặc biệt cho AI chatbots
+# Tạo file: public/llms.txt
+# Đây là chuẩn mới (2024) — Perplexity, Claude đọc file này trước khi crawl</pre>
+
+  <div class="card" style="margin-top:0.75rem;">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--yellow);margin-bottom:0.5rem;">public/llms.txt — Format chuẩn mới cho AI crawlers</div>
+    <pre class="py" style="font-size:0.78rem;"># StudyAI
+
+> AI-powered learning platform for Vietnamese university students
+
+StudyAI là nền tảng web giúp sinh viên:
+- Upload tài liệu học tập (PDF, DOCX, TXT, PPTX)
+- AI tự động sinh câu hỏi trắc nghiệm (10-50 câu, độ khó tùy chọn)
+- Chat hỏi đáp về nội dung tài liệu (Personal RAG)
+- Chat hỏi đáp về sổ tay sinh viên (Shared RAG)
+- Lưu lịch sử quiz 7 ngày
+
+## Tech Stack
+Backend: FastAPI (Python), PostgreSQL, Qdrant vector database
+AI: Google Gemini 2.0 Flash, custom RAG pipeline
+Frontend: React, TypeScript, ReUI (shadcn/ui)
+Deploy: Docker, Ubuntu 24.04 LTS
+
+## Liên kết
+- Ứng dụng: https://yourdomain.com
+- Đăng ký: https://yourdomain.com/register
+
+## Giới hạn sử dụng
+- Upload tối đa 200MB/user
+- Quiz lưu 7 ngày
+- Miễn phí hoàn toàn</pre>
+  </div>
+
+<h3 class="sub">GEO Checklist trước khi deploy</h3>
+<div class="card">
+<table>
+<tr><th>Hạng mục</th><th>Việc cần làm</th><th>File</th></tr>
+<tr><td>H1 rõ ràng</td><td>Chứa tên sản phẩm + mô tả cụ thể</td><td class="t-key">LandingPage.tsx</td></tr>
+<tr><td>Meta description</td><td>50–160 ký tự, có số liệu, không marketing chung chung</td><td class="t-key">index.html</td></tr>
+<tr><td>JSON-LD SoftwareApplication</td><td>Đầy đủ: name, description, featureList, audience</td><td class="t-key">index.html</td></tr>
+<tr><td>JSON-LD FAQPage</td><td>Tối thiểu 5 câu hỏi thực tế</td><td class="t-key">LandingPage.tsx</td></tr>
+<tr><td>llms.txt</td><td>Tóm tắt platform cho AI crawlers</td><td class="t-key">public/llms.txt</td></tr>
+<tr><td>robots.txt</td><td>Allow landing + Disallow /dashboard, /chat, /admin</td><td class="t-key">public/robots.txt</td></tr>
+<tr><td>sitemap.xml</td><td>Chỉ include public pages</td><td class="t-key">public/sitemap.xml</td></tr>
+<tr><td>og:image</td><td>1200x630px, screenshot UI đẹp</td><td class="t-key">public/og-image.png</td></tr>
+<tr><td>Author attribution</td><td>Tên tác giả + trường rõ ràng trên about page</td><td class="t-key">AboutPage.tsx</td></tr>
+<tr><td>Vietnamese lang tag</td><td><code>&lt;html lang="vi"&gt;</code></td><td class="t-key">index.html</td></tr>
+</table>
+</div>
+
+<div class="note y" style="margin-top:0.75rem;">
+  <strong>Thứ tự ưu tiên:</strong> Với đề tài sinh viên, SEO/GEO ít quan trọng hơn core features. Làm sau khi Phase 6 xong. Tuy nhiên llms.txt và JSON-LD thì thêm vào ngay từ đầu — chỉ tốn 30 phút và không cần code gì phức tạp.
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     PDF → MARKDOWN
+════════════════════════════════════════ -->
+<section id="doc-processing">
+<h2 class="section"><span class="icon">📄</span> Document Processing — PDF/DOCX → Markdown (tối ưu token)</h2>
+
+<div class="note t"><strong>Tại sao chuyển sang Markdown?</strong> Raw text extraction từ PDF bỏ mất cấu trúc (headings, tables, lists). LLM đọc Markdown hiệu quả hơn nhiều vì cấu trúc rõ ràng, ít garbage whitespace, giữ context giữa các section. Token-wise: Markdown thường nhỏ hơn raw text ~20-30%.</div>
+
+<h3 class="sub">Thư viện đề xuất: markitdown (Microsoft, 2024)</h3>
+<div class="g2">
+  <div class="card teal">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.5rem;">markitdown — pip install markitdown</div>
+    <ul style="font-size:0.8rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li>PDF → Markdown (giữ headings, tables, lists)</li>
+      <li>DOCX → Markdown (styles, tables)</li>
+      <li>PPTX → Markdown (slide titles, bullet points)</li>
+      <li>TXT → pass-through</li>
+      <li>Maintained by Microsoft, cập nhật thường xuyên</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--muted);margin-bottom:0.5rem;">Backup: pymupdf4llm — pip install pymupdf4llm</div>
+    <ul style="font-size:0.8rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li>Tập trung vào PDF, xử lý layout tốt hơn markitdown</li>
+      <li>Phân tích column layout (multi-column PDF)</li>
+      <li>Dùng khi markitdown fail với PDF phức tạp</li>
+      <li>Kết hợp: markitdown trước, fallback pymupdf4llm</li>
+    </ul>
+  </div>
+</div>
+
+<h3 class="sub">Parser implementation</h3>
+<pre class="py">
+# rag/parsers/__init__.py
+from markitdown import MarkItDown
+import pymupdf4llm
+
+md_converter = MarkItDown()   # singleton
+
+def parse_to_markdown(file_path: str, file_type: str) -> str:
+    """
+    Chuyển tài liệu sang Markdown để tối ưu token khi đưa vào LLM.
+    Priority: markitdown → fallback pymupdf4llm (chỉ PDF) → raw text.
+    """
+    try:
+        result = md_converter.convert(file_path)
+        text = result.text_content
+        if len(text.strip()) > 100:          # markitdown thành công
+            return _clean_markdown(text)
+    except Exception as e:
+        logger.warning(f"markitdown failed for {file_path}: {e}")
+
+    # Fallback 1: pymupdf4llm (chỉ PDF)
+    if file_type == "pdf":
+        try:
+            return pymupdf4llm.to_markdown(file_path)
+        except Exception:
+            pass
+
+    # Fallback 2: raw text (không nên xảy ra)
+    return _raw_extract(file_path, file_type)
+
+
+def _clean_markdown(text: str) -> str:
+    """Dọn garbage: multiple blank lines, page numbers, headers/footers lặp."""
+    import re
+    text = re.sub(r'\n{3,}', '\n\n', text)          # max 2 blank lines
+    text = re.sub(r'^\s*\d+\s*$', '', text, flags=re.MULTILINE)  # page numbers
+    text = text.strip()
+    return text
+</pre>
+
+<h3 class="sub">So sánh output — PDF thực tế</h3>
+<div class="g2">
+  <div class="card">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--red);margin-bottom:0.4rem;">Raw text (PyMuPDF thông thường)</div>
+    <pre style="font-size:0.75rem;color:#ccc;background:var(--s2);border:1px solid var(--border);padding:0.8rem;border-radius:6px;line-height:1.5;">Chương 1 Tổng quan hệ thống
+1.1 Giới thiệu Hệ thống được xây
+dựng nhằm mục đích...
+Bảng 1 Danh sách tính năng
+Tên Mô tả Trạng thái
+Upload PDF Cho phép upload Active
+Chat AI Hỏi đáp Active</pre>
+  </div>
+  <div class="card teal">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--teal);margin-bottom:0.4rem;">Markdown output (markitdown)</div>
+    <pre style="font-size:0.75rem;color:#86efac;background:var(--s2);border:1px solid rgba(0,212,170,0.3);padding:0.8rem;border-radius:6px;line-height:1.5;"># Chương 1: Tổng quan hệ thống
+
+## 1.1 Giới thiệu
+Hệ thống được xây dựng nhằm mục đích...
+
+### Bảng 1: Danh sách tính năng
+| Tên | Mô tả | Trạng thái |
+|-----|-------|-----------|
+| Upload PDF | Cho phép upload | Active |
+| Chat AI | Hỏi đáp | Active |</pre>
+  </div>
+</div>
+
+<h3 class="sub">Edge cases — File đặc biệt</h3>
+<div class="card">
+<table>
+<tr><th>Case</th><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>PDF scan (ảnh)</td><td>Không có text layer — markitdown trả về chuỗi rỗng</td><td class="t-note">Detect: nếu text &lt; 50 chars → báo lỗi "PDF này là scan, chưa hỗ trợ OCR". Upgrade sau: thêm Tesseract OCR</td></tr>
+<tr><td>PPTX chỉ có ảnh</td><td>Slide toàn hình, không text</td><td class="t-note">Cảnh báo: "Slide này chứa nhiều hình ảnh, AI có thể không đọc được nội dung đầy đủ"</td></tr>
+<tr><td>PDF có bảng phức tạp</td><td>markitdown fail table extraction</td><td class="t-note">Fallback tự động sang pymupdf4llm</td></tr>
+<tr><td>File encoding lạ</td><td>UnicodeDecodeError với TXT</td><td class="t-note">Try UTF-8 → UTF-16 → latin-1 → replace errors</td></tr>
+<tr><td>File quá lớn</td><td>PDF 200MB = parse lâu (30-60s)</td><td class="t-note">Background task, progress webhook về frontend. Đặt timeout 5 phút</td></tr>
+<tr><td>PDF có password</td><td>markitdown throw exception</td><td class="t-note">Catch → status=failed, message="Tài liệu có mật khẩu bảo vệ"</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     CHAT DATA DESIGN
+════════════════════════════════════════ -->
+<section id="chat-design">
+<h2 class="section"><span class="icon">💬</span> Chat Data Design — Lưu trữ & Context Management</h2>
+
+<h3 class="sub">Chiến lược lưu chat history</h3>
+<div class="g2">
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.5rem;">Cái gì được lưu vào DB?</div>
+    <table>
+      <tr><th>Field</th><th>Ghi chú</th></tr>
+      <tr><td class="t-key">content</td><td class="t-note">Full text message (không truncate)</td></tr>
+      <tr><td class="t-key">sources</td><td class="t-note">JSONB — chunks được dùng để RAG</td></tr>
+      <tr><td class="t-key">intent</td><td class="t-note">study / handbook / mcq</td></tr>
+      <tr><td class="t-key">model_used</td><td class="t-note">Để debug và analytics</td></tr>
+      <tr><td class="t-key">tokens_used</td><td class="t-note">(optional) Theo dõi usage</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.5rem;">Cái gì KHÔNG lưu?</div>
+    <ul style="font-size:0.8rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li>Không lưu raw chunks (chỉ lưu reference/source)</li>
+      <li>Không lưu full prompt (quá lớn)</li>
+      <li>Không lưu embedding vectors trong DB (chỉ trong Qdrant)</li>
+      <li>System messages không lưu (generated on-the-fly)</li>
+    </ul>
+  </div>
+</div>
+
+<h3 class="sub">Context window management — vấn đề quan trọng</h3>
+<div class="note p"><strong>Vấn đề:</strong> Gemini 2.0 Flash có context window 1M tokens nhưng free tier có giới hạn. Quan trọng hơn là chi phí token — càng nhiều lịch sử chat thì prompt càng dài, response chậm hơn và tốn quota hơn.</div>
+<pre class="py">
+# rag/pipeline.py — Build prompt thông minh
+
+CHAT_HISTORY_LIMIT = 10     # Chỉ giữ 10 messages gần nhất trong context
+RAG_CHUNKS_LIMIT = 5        # Top-5 chunks từ Qdrant
+MAX_CHUNK_TOKENS = 500      # Mỗi chunk tối đa 500 tokens
+MAX_CONTEXT_TOKENS = 3000   # Budget cho RAG context
+
+async def build_chat_prompt(
+    query: str,
+    conversation_id: UUID,
+    user_id: UUID,
+    intent: Intent,
+    db: Session
+) -> list[ChatMessage]:
+    """
+    Xây dựng prompt với sliding window history + RAG context.
+    Tổng: system (200) + history (1000) + rag_context (3000) + query (300) ~ 4500 tokens
+    """
+    messages = []
+
+    # 1. System prompt (ngắn gọn)
+    system = build_system_prompt(intent)
+    messages.append(ChatMessage("system", system))
+
+    # 2. RAG context — lấy chunks liên quan
+    chunks = await retrieve_chunks(query, user_id, intent, top_k=RAG_CHUNKS_LIMIT)
+    if chunks:
+        context_text = "\n\n---\n\n".join(
+            f"[Nguồn {i+1}]: {c['text'][:MAX_CHUNK_TOKENS*4]}"  # 4 chars ~ 1 token
+            for i, c in enumerate(chunks)
+        )
+        messages.append(ChatMessage("system",
+            f"Tài liệu tham khảo (dùng để trả lời, đừng bịa thêm):\n{context_text}"
+        ))
+
+    # 3. Chat history — chỉ N messages gần nhất (sliding window)
+    history = get_recent_messages(conversation_id, limit=CHAT_HISTORY_LIMIT, db=db)
+    messages.extend([ChatMessage(m.role, m.content) for m in history])
+
+    # 4. Câu hỏi hiện tại
+    messages.append(ChatMessage("user", query))
+
+    return messages
+
+
+def build_system_prompt(intent: Intent) -> str:
+    base = "Bạn là trợ lý học tập AI cho sinh viên đại học. Trả lời bằng tiếng Việt, ngắn gọn và chính xác."
+    if intent == Intent.STUDY:
+        return base + " Chỉ trả lời dựa trên tài liệu được cung cấp. Nếu không tìm thấy thông tin, nói rõ."
+    elif intent == Intent.HANDBOOK:
+        return base + " Dựa vào sổ tay sinh viên. Luôn trích dẫn trang/mục cụ thể."
+    return base
+</pre>
+
+<h3 class="sub">Conversation lifecycle</h3>
+<div class="card">
+<table>
+<tr><th>Sự kiện</th><th>Hành động</th></tr>
+<tr><td>User gửi tin nhắn đầu tiên</td><td>Tạo Conversation mới, auto-title từ 5 từ đầu của message</td></tr>
+<tr><td>User gửi tin nhắn tiếp</td><td>Append vào conversation, cập nhật <code>updated_at</code></td></tr>
+<tr><td>User xóa conversation</td><td>Cascade delete tất cả messages</td></tr>
+<tr><td>Conversation &gt; 100 messages</td><td>Frontend cảnh báo "Hội thoại dài có thể giảm chất lượng. Tạo hội thoại mới?"</td></tr>
+<tr><td>User inactive 30 ngày</td><td>(optional) Archive conversations cũ</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     ADMIN SCOPE
+════════════════════════════════════════ -->
+<section id="admin-scope">
+<h2 class="section"><span class="icon">🏛️</span> Admin Portal — Scope đầy đủ</h2>
+
+<h3 class="sub">Phân quyền Admin</h3>
+<div class="note p"><strong>Nguyên tắc:</strong> Admin KHÔNG thể đọc nội dung hội thoại/tài liệu cá nhân của sinh viên (privacy). Chỉ xem metadata và analytics aggregate.</div>
+
+<h3 class="sub">Admin quản lý những gì?</h3>
+<div class="g2">
+  <div class="card teal">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.6rem;">Handbook Management (chính)</div>
+    <table>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Upload tài liệu</td><td class="t-note">PDF/DOCX sổ tay → parse → index vào Qdrant shared</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Xem danh sách</td><td class="t-note">Tên file, ngày upload, số chunks, status</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Xóa tài liệu</td><td class="t-note">Xóa file + chunks trong Qdrant + DB record</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Re-index</td><td class="t-note">Upload lại phiên bản mới → xóa chunks cũ → index lại</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Preview</td><td class="t-note">Xem Markdown đã parse để verify chất lượng</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">User Management</div>
+    <table>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Xem danh sách</td><td class="t-note">ID, email, ngày đăng ký, storage đã dùng, số docs/quizzes</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Deactivate</td><td class="t-note">is_active=false (không xóa data)</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Xóa user</td><td class="t-note">Hard delete + cascade (docs, conversations, quizzes, Qdrant collection)</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Reset storage</td><td class="t-note">Xóa tất cả docs của user nếu lạm dụng</td></tr>
+    </table>
+  </div>
+</div>
+<div class="g2" style="margin-top:0.75rem;">
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">Analytics (aggregate only, không có PII)</div>
+    <table>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Usage stats</td><td class="t-note">Tổng users, docs, quizzes, conversations hôm nay/tuần/tháng</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Popular handbook queries</td><td class="t-note">Top 10 câu hỏi thường hỏi về sổ tay (không có tên user)</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Quiz stats</td><td class="t-note">Avg score, số câu thường sai nhất, difficulty phổ biến</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Storage usage</td><td class="t-note">Tổng storage đang dùng, top users dùng nhiều nhất</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">System Monitoring</div>
+    <table>
+      <tr><td style="font-size:0.8rem;font-weight:600;">AI Provider status</td><td class="t-note">Gemini/NVIDIA/Groq — UP/DOWN, quota còn lại</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Qdrant health</td><td class="t-note">Collections list, số vectors, storage</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Error logs</td><td class="t-note">Top lỗi xảy ra gần nhất (indexing failures, MCQ failures)</td></tr>
+      <tr><td style="font-size:0.8rem;font-weight:600;">Queue status</td><td class="t-note">Background tasks đang chạy (indexing, MCQ generating)</td></tr>
+    </table>
+  </div>
+</div>
+
+<h3 class="sub">Admin API Routes bổ sung</h3>
+<pre class="http">
+# Handbook (đã có) — bổ sung thêm:
+GET  /api/v1/admin/handbook/{id}/preview   # Xem Markdown đã parse
+POST /api/v1/admin/handbook/{id}/reindex   # Re-parse và re-index
+
+# Users — bổ sung:
+POST /api/v1/admin/users/{id}/deactivate
+POST /api/v1/admin/users/{id}/reset-storage  # Xóa tất cả docs của user
+
+# Analytics:
+GET  /api/v1/admin/analytics/overview      # Stats tổng quan
+GET  /api/v1/admin/analytics/handbook-queries  # Popular questions (aggregate)
+GET  /api/v1/admin/analytics/quiz-stats
+
+# System:
+GET  /api/v1/admin/system/health           # AI providers + Qdrant status
+GET  /api/v1/admin/system/errors           # Recent errors log</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     RISKS & EDGE CASES
+════════════════════════════════════════ -->
+<section id="risks">
+<h2 class="section"><span class="icon">⚠️</span> Rủi ro & Edge Cases — Mọi vấn đề có thể xảy ra</h2>
+
+<h3 class="sub">AI Layer — Rate limits & Failures</h3>
+<div class="card">
+<table>
+<tr><th>Vấn đề</th><th>Kịch bản</th><th>Xử lý</th></tr>
+<tr><td>Gemini 429 rate limit</td><td>Nhiều user chat cùng lúc vượt 15 RPM</td><td>Auto-fallback sang NVIDIA → Groq. Log để biết tần suất</td></tr>
+<tr><td>Gemini quota hết ngày</td><td>Hết 1,500 req/ngày</td><td>Fallback chain. Frontend hiện "Hệ thống đang bận, thử lại sau"</td></tr>
+<tr><td>Gemini trả JSON sai (MCQ)</td><td>Response không parse được</td><td>Retry tối đa 3 lần với prompt nhắc lại "output JSON only". Nếu vẫn fail → status=failed</td></tr>
+<tr><td>Gemini content policy</td><td>Tài liệu bị filter (hiếm)</td><td>Không fallback (policy violation). Báo lỗi cụ thể cho user</td></tr>
+<tr><td>Embedding API fail</td><td>Không embed được chunk</td><td>Retry 3 lần. Nếu fail → document status=failed, rollback Qdrant</td></tr>
+<tr><td>All providers down</td><td>Cả 3 provider đều fail</td><td>Show maintenance message. Không silently fail</td></tr>
+</table>
+</div>
+
+<h3 class="sub">RAG Pipeline — Indexing failures</h3>
+<div class="card">
+<table>
+<tr><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>User xóa document khi đang indexing</td><td>Check <code>document.status</code> trong background task. Nếu document bị xóa → stop task, clean up Qdrant partial data</td></tr>
+<tr><td>Qdrant collection không tồn tại khi query</td><td>Catch exception, trả về "Bạn chưa upload tài liệu nào. Vui lòng upload trước khi hỏi."</td></tr>
+<tr><td>User upload 2 file cùng lúc</td><td>Mỗi file là 1 background task độc lập. Qdrant upsert là idempotent — an toàn</td></tr>
+<tr><td>Re-upload file đã có</td><td>Cho phép. Tạo document record mới, index thêm chunks. User có thể có nhiều phiên bản.</td></tr>
+<tr><td>Qdrant upsert partial fail</td><td>Nếu crash giữa chừng → document status=failed. User re-upload để thử lại. Không để "zombie" chunks</td></tr>
+<tr><td>Tài liệu không có nội dung học thuật</td><td>Không validate — AI sẽ trả lời theo những gì có trong file</td></tr>
+</table>
+</div>
+
+<h3 class="sub">Quiz — Generation & Attempt failures</h3>
+<div class="card">
+<table>
+<tr><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>Quiz expired khi user đang làm</td><td>FE check expiry trước khi submit. BE allow submit nếu attempt đã bắt đầu (started_at exists)</td></tr>
+<tr><td>Gemini sinh ít hơn số câu yêu cầu</td><td>Accept nếu ≥ 80% (VD: yêu cầu 50, sinh được 42 → ok). Nếu &lt;80% → retry</td></tr>
+<tr><td>User submit quiz 2 lần</td><td>Lưu attempt mới nhất. Hoặc: lock sau lần submit đầu tiên (completed_at != null → reject)</td></tr>
+<tr><td>Tài liệu quá ngắn để sinh 50 câu</td><td>Gemini sẽ sinh ít hơn. BE trả về actual count. FE không hard-fail</td></tr>
+<tr><td>MCQ generation timeout (tài liệu rất dài)</td><td>Background task timeout 5 phút. Status=failed với message rõ ràng</td></tr>
+</table>
+</div>
+
+<h3 class="sub">File Upload — Security & Validation</h3>
+<div class="card">
+<table>
+<tr><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>User upload file giả extension (exe đổi thành pdf)</td><td>Validate magic bytes (file signature), không chỉ extension. PyMuPDF sẽ throw nếu không phải PDF thật</td></tr>
+<tr><td>Upload file quá lớn &gt;200MB</td><td>Nginx giới hạn <code>client_max_body_size 200m</code>. FastAPI validate trước khi save</td></tr>
+<tr><td>Path traversal attack</td><td>Luôn dùng <code>uuid4()</code> làm filename server-side. KHÔNG dùng tên file gốc của user làm path</td></tr>
+<tr><td>Storage quota vượt 200MB/user</td><td>Check <code>storage_used_bytes</code> trước khi accept upload. Trả 403 nếu đầy</td></tr>
+<tr><td>Zip bomb (file nén chứa file khổng lồ)</td><td>Không support zip. Chỉ accept PDF/DOCX/TXT/PPTX trực tiếp</td></tr>
+</table>
+</div>
+
+<h3 class="sub">Streaming Chat — SSE failures</h3>
+<div class="card">
+<table>
+<tr><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>Client disconnect giữa chừng SSE</td><td>FastAPI detect <code>request.is_disconnected()</code> trong async generator → stop streaming, vẫn lưu partial message vào DB</td></tr>
+<tr><td>Nginx buffer SSE</td><td>Set <code>proxy_buffering off; X-Accel-Buffering: no</code> trong nginx config</td></tr>
+<tr><td>SSE reconnect sau disconnect</td><td>Frontend EventSource auto-reconnect. Backend: conversation vẫn còn → user có thể hỏi lại</td></tr>
+<tr><td>Gemini stream timeout</td><td>Set <code>httpx.AsyncClient</code> timeout = 60s. Nếu timeout → stream kết thúc sớm, lưu những gì đã có</td></tr>
+</table>
+</div>
+
+<h3 class="sub">Concurrency & Performance</h3>
+<div class="card">
+<table>
+<tr><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>Nhiều user indexing cùng lúc</td><td>FastAPI BackgroundTasks chạy async. Qdrant handle concurrent upserts. Không cần queue cho demo</td></tr>
+<tr><td>Gemini RPM với nhiều concurrent requests</td><td>Add semaphore: <code>asyncio.Semaphore(10)</code> — tối đa 10 AI requests cùng lúc</td></tr>
+<tr><td>Qdrant search chậm khi nhiều vectors</td><td>HNSW index tự động trong Qdrant — search O(log N). Không vấn đề với số lượng học sinh bình thường</td></tr>
+<tr><td>PostgreSQL connection pool</td><td>SQLModel/SQLAlchemy pool size = 10 (mặc định). Đủ cho demo.</td></tr>
+</table>
+</div>
+<h3 class="sub">Security & Abuse (Đặc thù Sinh viên)</h3>
+<div class="card">
+<table>
+<tr><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>Prompt Injection (Jailbreak)</td><td>Sinh viên lừa AI làm hộ bài tập hoặc "bỏ qua hướng dẫn". <strong>Xử lý:</strong> System prompt cứng ("Không làm hộ bài tập"), và Regex filter các keyword nhạy cảm từ user input trước khi gọi API.</td></tr>
+<tr><td>File size (MB) vs Token count</td><td>File 5MB text = hàng nghìn trang = cạn quota embedding. <strong>Xử lý:</strong> Khi parse xong, đếm số ký tự (VD: max 500,000 ký tự). Nếu vượt, báo lỗi "Tài liệu quá dài, vui lòng cắt nhỏ".</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     GSAP ANIMATION GUIDE
+════════════════════════════════════════ -->
+<section id="gsap-guide">
+<h2 class="section"><span class="icon">🎬</span> GSAP Animation — Hướng dẫn dùng trong dự án</h2>
+
+<div class="note p">
+  <strong>Triết lý:</strong> GSAP dùng để tạo "cảm giác sống" — không phải trang trí thừa thãi.
+  Chỉ animate những thứ user chú ý. Ưu tiên <code>transform</code> (x, y, scale, opacity) — KHÔNG animate width/height/top/left vì gây layout thrash.
+</div>
+
+<h3 class="sub">Cài đặt & Setup (React + Vite)</h3>
+<pre class="py">
+# Terminal
+npm install gsap @gsap/react
+
+# main.tsx — đăng ký plugins 1 lần duy nhất toàn app
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+</pre>
+
+<h3 class="sub">Pattern chuẩn trong React — useGSAP() hook</h3>
+<pre class="py">
+/**
+ * LUÔN dùng useGSAP() thay vì useEffect() khi animate với GSAP.
+ * Lý do: tự động cleanup khi component unmount, tránh memory leak.
+ * Ref: https://gsap.com/docs/v3/React
+ */
+import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "gsap";
+
+export function FeatureCards() {
+  const containerRef = useRef&lt;HTMLDivElement&gt;(null);
+
+  useGSAP(() => {
+    // scope: containerRef → selector ".card" chỉ tìm bên trong container
+    gsap.from(".card", {
+      opacity: 0,
+      y: 40,
+      duration: 0.6,
+      stagger: 0.15,  // mỗi card xuất hiện cách nhau 0.15s
+      ease: "power2.out",
+    });
+  }, { scope: containerRef });
+
+  return (
+    &lt;div ref={containerRef}&gt;
+      &lt;div className="card"&gt;...&lt;/div&gt;
+      &lt;div className="card"&gt;...&lt;/div&gt;
+      &lt;div className="card"&gt;...&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</pre>
+
+<h3 class="sub">Áp dụng GSAP vào từng phần của dự án</h3>
+<div class="g2">
+  <div class="card teal">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.6rem;">Landing Page — ScrollTrigger</div>
+    <ul style="font-size:0.78rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li><strong>HeroSection:</strong> Fade-in + slide-up cho headline và CTA khi trang load. Timeline đơn giản.</li>
+      <li><strong>FeatureCards:</strong> Stagger fade-in từng card khi scroll đến (ScrollTrigger <code>start: "top 80%"</code>).</li>
+      <li><strong>HowItWorks:</strong> Từng bước (1→2→3) animate tuần tự theo scroll.</li>
+      <li><strong>CTASection:</strong> Scale-up nhẹ khi scroll vào (<code>scale: 0.95 → 1</code>).</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">Chat & Quiz — Micro-interactions</div>
+    <ul style="font-size:0.78rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li><strong>MessageBubble:</strong> Mỗi tin nhắn mới slide-in từ dưới lên (<code>y: 20, opacity: 0 → 1</code>). Duration 0.3s.</li>
+      <li><strong>OptionButton:</strong> Khi chọn đáp án đúng → shake nhẹ hoặc bounce (<code>gsap.fromTo</code> scale).</li>
+      <li><strong>ScoreDisplay:</strong> Counter animate từ 0 lên điểm thật sự khi kết quả hiện ra.</li>
+      <li><strong>QuizProgressBar:</strong> Animate <code>width</code> → dùng <code>scaleX</code> thay thế để tối ưu.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">Admin Dashboard — Số liệu</div>
+    <ul style="font-size:0.78rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li><strong>StatCard:</strong> Số liệu (VD: 1,234 users) đếm từ 0 lên khi component mount. Dùng <code>gsap.to({val: 0}, {val: 1234, onUpdate})</code>.</li>
+      <li><strong>ResourceGauge:</strong> Bar CPU/RAM animate fill width khi data load.</li>
+      <li><strong>AlertBanner:</strong> Slide-down từ trên xuống khi có lỗi mới.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">Global — Page Transitions</div>
+    <ul style="font-size:0.78rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li>Khi chuyển route → fade-out trang cũ (<code>opacity: 1→0, duration: 0.2</code>) rồi fade-in trang mới.</li>
+      <li>Implement trong <code>AppLayout.tsx</code> bằng cách wrap <code>&lt;Outlet /&gt;</code> và listen route change từ TanStack Router.</li>
+      <li>KHÔNG dùng cho chuyển route Admin (cần responsive, không cần fancy).</li>
+    </ul>
+  </div>
+</div>
+
+<h3 class="sub">Quy tắc Performance (GSAP trong dự án này)</h3>
+<div class="card">
+<table>
+<tr><th>✅ Nên làm</th><th>❌ Không làm</th></tr>
+<tr><td>Animate <code>x, y, scale, opacity, rotation</code></td><td>Animate <code>width, height, top, left, margin</code></td></tr>
+<tr><td>Dùng <code>useGSAP()</code> trong React</td><td>Dùng <code>useEffect()</code> với GSAP (sẽ leak)</td></tr>
+<tr><td>Thêm <code>will-change: transform</code> cho element animate nhiều</td><td>Thêm <code>will-change</code> cho mọi element</td></tr>
+<tr><td>Duration 0.2-0.6s cho UI interactions</td><td>Duration > 1s cho buttons, badges (quá chậm)</td></tr>
+<tr><td><code>ease: "power2.out"</code> cho entrance animations</td><td>Dùng <code>ease: "bounce"</code> lung tung (trẻ con)</td></tr>
+<tr><td>ScrollTrigger <code>once: true</code> cho animations không lặp</td><td>Animation lặp liên tục khi scroll (gây chóng mặt)</td></tr>
+</table>
+</div>
+
+<h3 class="sub">Ví dụ: ScoreDisplay Counter Animation</h3>
+<pre class="py">
+/**
+ * src/components/quiz/ScoreDisplay.tsx
+ * Counter animate từ 0 lên điểm số thật — dùng GSAP gsap.to() với onUpdate.
+ * Đây là micro-interaction tạo cảm giác "đang tính điểm cho bạn" rất ấn tượng.
+ */
+import { useRef, useState } from "react";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "gsap";
+
+interface Props { score: number; total: number; }
+
+export function ScoreDisplay({ score, total }: Props) {
+  const [displayScore, setDisplayScore] = useState(0);
+  const containerRef = useRef&lt;HTMLDivElement&gt;(null);
+
+  useGSAP(() => {
+    const counter = { val: 0 };
+    gsap.to(counter, {
+      val: score,
+      duration: 1.5,
+      ease: "power1.out",
+      onUpdate: () => setDisplayScore(Math.round(counter.val)),
+    });
+  }, { scope: containerRef, dependencies: [score] });
+
+  const pct = Math.round((score / total) * 100);
+
+  return (
+    &lt;div ref={containerRef} className="text-center"&gt;
+      &lt;div className="text-6xl font-bold"&gt;{displayScore}&lt;span className="text-2xl text-muted"&gt;/{total}&lt;/span&gt;&lt;/div&gt;
+      &lt;div className="text-xl mt-2"&gt;{pct}% chính xác&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     CODE QUALITY
+════════════════════════════════════════ -->
+<section id="code-quality">
+<h2 class="section"><span class="icon">✨</span> Code Quality — Standards & Conventions</h2>
+
+<h3 class="sub">Backend — Python conventions</h3>
+<pre class="py">
+# ── Naming conventions ────────────────────────────────────────────────
+# Files/modules:       snake_case.py
+# Classes:             PascalCase
+# Functions/variables: snake_case
+# Constants:           SCREAMING_SNAKE_CASE
+# FastAPI routes:      kebab-case trong URL, snake_case trong function name
+
+# ── Type hints — BẮT BUỘC cho tất cả functions ───────────────────────
+# ❌ Bad
+def get_user(user_id):
+    return db.query(User).filter(User.id == user_id).first()
+
+# ✅ Good
+async def get_user(user_id: UUID, db: Session) -> User | None:
+    """Lấy user theo ID. Trả None nếu không tìm thấy."""
+    return db.exec(select(User).where(User.id == user_id)).first()
+
+# ── Docstrings — viết cho mọi function public ─────────────────────────
+async def classify_intent(query: str, user_has_docs: bool) -> Intent:
+    """
+    Phân loại intent của câu hỏi user (hybrid: keyword → LLM → default).
+
+    Args:
+        query: Câu hỏi của user (raw text).
+        user_has_docs: True nếu user đã upload ít nhất 1 tài liệu.
+
+    Returns:
+        Intent enum: STUDY | HANDBOOK | MCQ
+
+    Notes:
+        - Keyword matching trước (free, &lt;1ms)
+        - LLM classify chỉ khi keyword không match (~200ms)
+        - Fallback về STUDY nếu có docs, HANDBOOK nếu không
+    """
+    ...
+
+# ── Error handling — rõ ràng, không silent fail ───────────────────────
+# ❌ Bad
+try:
+    result = await embed_text(chunk)
+except:
+    pass  # Never do this
+
+# ✅ Good
+try:
+    result = await embed_text(chunk)
+except EmbeddingRateLimitError:
+    logger.warning(f"Embedding rate limit, retrying in 5s for chunk {chunk_index}")
+    await asyncio.sleep(5)
+    result = await embed_text(chunk)   # retry once
+except EmbeddingError as e:
+    logger.error(f"Embedding failed for doc {doc_id}: {e}")
+    raise DocumentIndexingError(f"Không thể embed chunk {chunk_index}: {e}") from e
+
+# ── Constants — không magic numbers ──────────────────────────────────
+# ❌ Bad
+chunks = chunk_text(text, 500, 50)
+
+# ✅ Good (trong constants.py hoặc config)
+CHUNK_SIZE_TOKENS = 500
+CHUNK_OVERLAP_TOKENS = 50
+chunks = chunk_text(text, CHUNK_SIZE_TOKENS, CHUNK_OVERLAP_TOKENS)</pre>
+
+<h3 class="sub">Frontend — React/TypeScript conventions</h3>
+<pre class="py">
+// ── Component structure — mọi component đều theo template này ────────
+
+/**
+ * QuestionCard - Hiển thị 1 câu hỏi MCQ với 4 options.
+ *
+ * @example
+ * &lt;QuestionCard
+ *   question={questions[currentIndex]}
+ *   selectedAnswer={answers[question.id]}
+ *   onSelect={(answer) => handleSelect(question.id, answer)}
+ *   isReview={false}
+ * /&gt;
+ */
+
+// Props luôn có interface riêng, đặt ngay trên component
+interface QuestionCardProps {
+  question: Question;
+  selectedAnswer?: "A" | "B" | "C" | "D";
+  onSelect: (answer: "A" | "B" | "C" | "D") => void;
+  isReview?: boolean;           // Nếu đang xem kết quả (hiển thị đúng/sai)
+  correctAnswer?: "A" | "B" | "C" | "D";  // Chỉ có khi isReview=true
+}
+
+export function QuestionCard({
+  question,
+  selectedAnswer,
+  onSelect,
+  isReview = false,
+  correctAnswer,
+}: QuestionCardProps) {
+  // Logic ngắn — nếu &gt;50 dòng logic thì tách ra custom hook
+  const options = Object.entries(question.options) as [string, string][];
+
+  return (
+    &lt;div className="..."&gt;
+      {/* Câu hỏi */}
+      &lt;p className="..."&gt;{question.question_text}&lt;/p&gt;
+
+      {/* Options */}
+      {options.map(([key, value]) =&gt; (
+        &lt;OptionButton
+          key={key}
+          optionKey={key}
+          value={value}
+          isSelected={selectedAnswer === key}
+          isCorrect={isReview ? correctAnswer === key : undefined}
+          isWrong={isReview ? selectedAnswer === key && correctAnswer !== key : undefined}
+          onClick={() =&gt; !isReview && onSelect(key as "A"|"B"|"C"|"D")}
+        /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+
+// ── Reusability rules ─────────────────────────────────────────────────
+// Mọi component nên: Pure (no side effects), Controlled (props-driven),
+// Composable (dùng children hoặc render props nếu cần extend)
+
+// ── Naming ────────────────────────────────────────────────────────────
+// Components:    PascalCase.tsx     (QuizCard.tsx, UploadZone.tsx)
+// Hooks:         useCamelCase.ts    (useStreamChat.ts, useQuiz.ts)
+// Services:      camelCase.ts       (quiz.service.ts, chat.service.ts)
+// Constants:     SCREAMING_SNAKE   (MAX_QUESTIONS, INTENT_TYPES)
+// Types:         PascalCase         (interface Question, type Intent)
+
+// ── Custom hooks — tách logic khỏi UI ────────────────────────────────
+// hooks/useStreamChat.ts — quản lý SSE stream, không để trong component
+export function useStreamChat(conversationId?: string) {
+  const [messages, setMessages] = useState&lt;Message[]&gt;([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [error, setError] = useState&lt;string | null&gt;(null);
+
+  const sendMessage = useCallback(async (content: string, documentId?: string) =&gt; {
+    // SSE streaming logic ở đây, không trong ChatWindow
+    ...
+  }, [conversationId]);
+
+  return { messages, isStreaming, error, sendMessage };
+}
+// ChatWindow.tsx chỉ gọi: const { messages, sendMessage } = useStreamChat(id);</pre>
+
+<h3 class="sub">Reusable component patterns</h3>
+<div class="g2">
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.5rem;">Composable Status Badge</div>
+    <pre style="font-size:0.76rem;color:#a5b4fc;background:var(--s2);border:1px solid var(--border);padding:0.75rem;border-radius:6px;line-height:1.6;">// Dùng được ở documents, quiz, handbook
+type Status = "pending"|"indexing"|"ready"|"failed";
+
+const STATUS_CONFIG = {
+  pending:  { label:"Đang chờ",   color:"yellow" },
+  indexing: { label:"Đang xử lý", color:"blue"   },
+  ready:    { label:"Sẵn sàng",   color:"green"  },
+  failed:   { label:"Thất bại",   color:"red"    },
+};
+
+function StatusBadge({ status }: { status: Status }) {
+  const cfg = STATUS_CONFIG[status];
+  return &lt;Badge variant={cfg.color}&gt;{cfg.label}&lt;/Badge&gt;;
+}</pre>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.5rem;">Generic Empty State</div>
+    <pre style="font-size:0.76rem;color:#a5b4fc;background:var(--s2);border:1px solid var(--border);padding:0.75rem;border-radius:6px;line-height:1.6;">// Dùng ở Documents, Quiz, Conversations
+interface EmptyStateProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action?: { label: string; onClick: () => void };
+}
+
+function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
+  return (
+    &lt;div className="flex flex-col items-center py-12 gap-3"&gt;
+      &lt;Icon className="w-12 h-12 text-muted-foreground" /&gt;
+      &lt;h3 className="font-semibold"&gt;{title}&lt;/h3&gt;
+      &lt;p className="text-sm text-muted-foreground"&gt;{description}&lt;/p&gt;
+      {action && &lt;Button onClick={action.onClick}&gt;{action.label}&lt;/Button&gt;}
+    &lt;/div&gt;
+  );
+}</pre>
+  </div>
+</div>
+
+<h3 class="sub">Code quality checklist (review trước khi commit)</h3>
+<div class="card">
+<table>
+<tr><th>Category</th><th>Checklist</th></tr>
+<tr><td style="font-weight:600;color:var(--teal);">Backend</td><td class="t-note">
+  ✓ Tất cả functions có type hints &nbsp;|&nbsp;
+  ✓ Public functions có docstring &nbsp;|&nbsp;
+  ✓ Không có magic numbers (dùng constants) &nbsp;|&nbsp;
+  ✓ Exceptions cụ thể, không bare except &nbsp;|&nbsp;
+  ✓ Logger thay vì print() &nbsp;|&nbsp;
+  ✓ Async functions được await đúng
+</td></tr>
+<tr><td style="font-weight:600;color:var(--accent);">Frontend</td><td class="t-note">
+  ✓ Props có interface TypeScript đầy đủ &nbsp;|&nbsp;
+  ✓ JSDoc comment cho complex components &nbsp;|&nbsp;
+  ✓ Logic phức tạp tách ra custom hook &nbsp;|&nbsp;
+  ✓ Không có hardcoded strings (dùng constants.ts) &nbsp;|&nbsp;
+  ✓ Loading + Error states cho mọi async operation &nbsp;|&nbsp;
+  ✓ Không any type (strict TypeScript)
+</td></tr>
+<tr><td style="font-weight:600;color:var(--yellow);">General</td><td class="t-note">
+  ✓ Không có TODO comments trong production code &nbsp;|&nbsp;
+  ✓ Không có commented-out code &nbsp;|&nbsp;
+  ✓ Commit message rõ ràng (feat/fix/refactor prefix) &nbsp;|&nbsp;
+  ✓ Env variables không bao giờ hardcode &nbsp;|&nbsp;
+  ✓ Sensitive data không log (passwords, API keys)
+</td></tr>
+</table>
+</div>
+
+<h3 class="sub">Bổ sung vào nav sidebar</h3>
+<div class="note p"><strong>Nav items cần thêm:</strong> Document Processing | Chat Design | Admin Scope | Risks | Code Quality — Đã bổ sung vào sidebar bên trái.</div>
+<!-- ════════════════════════════════════════
+     RAG TO DATABASE (SỰ ĐỒNG BỘ)
+════════════════════════════════════════ -->
+<section id="rag-db">
+<h2 class="section"><span class="icon">🗄️</span> RAG & Database — Vấn đề đồng bộ (Source of Truth)</h2>
+
+<div class="note t"><strong>Vấn đề user đề cập:</strong> "Phải lưu phần RAG lên database vì nó sẽ phát sinh thêm". Rất chính xác! Nếu chỉ ném text vào Qdrant, ta sẽ mất kiểm soát (khó xóa, khó update, không biết chunk nào thuộc file nào nếu Qdrant lỗi). Cần PostgreSQL làm "Source of Truth".</div>
+
+<h3 class="sub">Giải pháp: Bảng DocumentChunks trong PostgreSQL</h3>
+<div class="g2">
+  <div class="card teal">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.6rem;">Schema Bổ sung (PostgreSQL)</div>
+    <pre class="py" style="font-size:0.75rem;">class DocumentChunk(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    document_id: UUID = Field(foreign_key="document.id")
+    chunk_index: int       # Thứ tự chunk
+    text_content: str      # Nội dung text thực sự
+    qdrant_point_id: str   # ID tương ứng trong Qdrant
+    tokens_count: int      # Tối ưu billing
+    created_at: datetime
+    
+    # Quan hệ
+    document: Document = Relationship(back_populates="chunks")</pre>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">Lợi ích tuyệt đối của việc lưu vào DB</div>
+    <ul style="font-size:0.8rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li><strong>Cascade Delete:</strong> Khi xóa Document, ta query được toàn bộ <code>qdrant_point_id</code> để xóa bên Qdrant an toàn.</li>
+      <li><strong>Disaster Recovery:</strong> Nếu Qdrant crash mất data, ta có thể re-embed lại toàn bộ từ PostgreSQL mà không cần user upload lại file.</li>
+      <li><strong>Audit & Debug:</strong> Khi AI trả lời sai, admin/dev có thể check chính xác text trong DB thay vì phải query Qdrant.</li>
+    </ul>
+  </div>
+</div>
+
+<h3 class="sub">Luồng Indexing an toàn (2-Phase Commit concept)</h3>
+<pre class="py">
+# rag/indexing.py
+async def index_document(document_id: UUID, db: Session):
+    # 1. Parse PDF -> Markdown
+    text = parse_to_markdown(file)
+    
+    # 2. Chunking
+    chunks = text_splitter.split_text(text)
+    
+    # 3. Embed & Lưu đồng thời
+    for i, chunk_text in enumerate(chunks):
+        # Tạo vector
+        vector = await embed_text(chunk_text)
+        point_id = str(uuid4())
+        
+        # A. Lưu vào DB trước (Transaction)
+        db_chunk = DocumentChunk(
+            document_id=document_id,
+            chunk_index=i,
+            text_content=chunk_text,
+            qdrant_point_id=point_id
+        )
+        db.add(db_chunk)
+        
+        # B. Upsert vào Qdrant
+        qdrant.upsert(
+            collection_name=collection,
+            points=[PointStruct(id=point_id, vector=vector, payload={"doc_id": str(document_id)})]
+        )
+    
+    db.commit() # Hoàn thành cả 2
+</pre>
+</section>
+
+<!-- ════════════════════════════════════════
+     CÁC VẤN ĐỀ VẬN HÀNH CHƯA NHẮC TỚI
+════════════════════════════════════════ -->
+<section id="missing-gaps">
+<h2 class="section"><span class="icon">🔧</span> Các Gaps Vận Hành & Kỹ Thuật</h2>
+
+<h3 class="sub" id="rate-limiting">1. Rate Limiting (Chống Spam / Abuse)</h3>
+<div class="card">
+<p style="font-size:0.85rem;margin-bottom:0.5rem">Free API (Gemini/Groq) rất dễ bị cạn kiệt nếu 1 user spam click "Tạo Quiz". Cần implement Rate Limit ở tầng FastAPI.</p>
+<pre class="py">
+# Cài đặt: pip install slowapi
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+
+# Giới hạn API Chat: 10 tin nhắn / phút
+@router.post("/chat")
+@limiter.limit("10/minute")
+async def chat(...): ...
+
+# Giới hạn Sinh Quiz: 5 lần / ngày / user
+@router.post("/quiz/generate")
+@limiter.limit("5/day") 
+async def generate_quiz(...): ...
+</pre>
+</div>
+
+<h3 class="sub" id="status-polling">2. Status Updates (Trạng thái Async Tasks)</h3>
+<div class="note p">Khi user upload file 50 trang, việc parse và embed mất khoảng 20-30s. Frontend không thể chờ HTTP request 30s (sẽ bị timeout). Giải pháp?</div>
+<div class="g2">
+  <div class="card teal">
+    <div style="font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:0.6rem;">Phương án 1: Short Polling (Đề xuất vì dễ làm)</div>
+    <ul style="font-size:0.8rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li>API <code>POST /upload</code> trả về ngay <code>{"status": "indexing", "doc_id": "123"}</code></li>
+      <li>Frontend dùng <code>setInterval</code> hoặc TanStack Query <code>refetchInterval: 3000</code> gọi API <code>GET /docs/123</code> mỗi 3 giây.</li>
+      <li>Khi status chuyển sang "ready" hoặc "failed" thì dừng poll và hiện thông báo.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.6rem;">Phương án 2: WebSockets / SSE</div>
+    <ul style="font-size:0.8rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+      <li>Server push trực tiếp event "doc_ready" xuống client.</li>
+      <li>Ưu điểm: Real-time, mượt.</li>
+      <li>Nhược điểm: Setup phức tạp hơn, tốn connection của server. Với tính chất hệ thống này, Polling là đủ tốt.</li>
+    </ul>
+  </div>
+</div>
+
+<h3 class="sub" id="backup">3. Backup Strategy (Chiến lược sao lưu)</h3>
+<div class="card">
+<p style="font-size:0.85rem;margin-bottom:0.5rem">Mất data là thảm họa. VPS 80GB cần có cronjob tự động backup data.</p>
+<table>
+  <tr><th>Thành phần</th><th>Công cụ / Cách làm</th><th>Tần suất</th></tr>
+  <tr><td class="t-key">PostgreSQL</td><td><code>pg_dump</code> lưu thành file .sql.gz, push lên Google Drive hoặc S3 (dùng rclone)</td><td>Mỗi ngày 1 lần (2AM)</td></tr>
+  <tr><td class="t-key">Qdrant</td><td>Tạo Qdrant Snapshots API: <code>POST /collections/{name}/snapshots</code></td><td>Mỗi tuần 1 lần (vì có thể build lại từ DB)</td></tr>
+  <tr><td class="t-key">Uploaded Files</td><td>Backup folder <code>/app/uploads</code> (nếu giữ file gốc)</td><td>Đồng bộ rsync mỗi ngày</td></tr>
+</table>
+</div>
+
+<h3 class="sub" id="logging">4. Centralized Logging (Bắt Bug)</h3>
+<div class="card">
+<p style="font-size:0.85rem;margin-bottom:0.5rem">Khi code chạy trên server Docker, nếu lỗi xảy ra bạn không thể chỉ nhìn màn hình console.</p>
+<pre class="py">
+# Cấu hình loguru (thay thế logging mặc định)
+# pip install loguru
+from loguru import logger
+
+logger.add(
+    "logs/studyai_{time:YYYY-MM-DD}.log", 
+    rotation="10 MB",    # File quá 10MB sẽ tạo file mới
+    retention="30 days", # Tự xóa log cũ sau 30 ngày
+    level="INFO"
+)
+
+# Sử dụng trong code thay vì print()
+logger.info(f"User {user.id} uploaded document {doc.id}")
+logger.error(f"Failed to parse PDF {doc.id}: {str(e)}")
+</pre>
+</div>
+
+<h3 class="sub" id="https-ssl">5. HTTPS & SSL (Bắt buộc)</h3>
+<div class="card">
+<p style="font-size:0.85rem;margin-bottom:0.5rem">Khi deploy lên VPS, Nginx <strong>bắt buộc phải cấu hình SSL (Let's Encrypt)</strong>.</p>
+<ul style="font-size:0.8rem;color:var(--muted);margin-left:1rem;line-height:1.7;">
+  <li><strong>UX:</strong> Trình duyệt chặn API <code>navigator.clipboard</code> (Copy tin nhắn) nếu không có HTTPS.</li>
+  <li><strong>Security:</strong> Bảo vệ JWT token của sinh viên khi dùng wifi trường học, chặn Man-in-the-middle attack.</li>
+</ul>
+</div>
+</section>
+
+<!-- ════════════════════════════════════════
+     UX GAPS & REUSABILITY
+════════════════════════════════════════ -->
+<section id="missing-ux">
+<h2 class="section"><span class="icon">🎨</span> Trải Nghiệm Người Dùng (UX) & Reusable Components</h2>
+
+<div class="note p"><strong>Yêu cầu:</strong> Code sạch, note code, tính tái sử dụng component cao. UX phải xử lý mượt các trạng thái chờ, lỗi.</div>
+
+<h3 class="sub">Những State UI (Trạng thái) bắt buộc phải có</h3>
+<div class="g2">
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.4rem;color:var(--teal)">1. Loading / Skeleton</div>
+    <div style="font-size:0.75rem;color:var(--muted);">Thay vì spinner xoay nhàm chán, dùng Skeleton Component để hiện khung layout trước khi data về. Cảm giác app nhanh hơn.</div>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.4rem;color:var(--orange)">2. Empty States</div>
+    <div style="font-size:0.75rem;color:var(--muted);">Chưa có tài liệu? Chưa có quiz? Phải có component <code>&lt;EmptyState /&gt;</code> tái sử dụng với icon (Lucide) và nút Call-to-action.</div>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.4rem;color:var(--red)">3. Error Boundaries</div>
+    <div style="font-size:0.75rem;color:var(--muted);">Nếu component Crash (VD: parse JSON lỗi), không được sập trắng toàn bộ web. React Error Boundary sẽ bắt lỗi và hiện UI lỗi.</div>
+  </div>
+  <div class="card">
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.4rem;color:var(--accent)">4. Feedback Loop (Thumbs Up/Down)</div>
+    <div style="font-size:0.75rem;color:var(--muted);">Tích hợp 2 nút 👍/👎 ở mỗi tin nhắn AI. Lưu vào DB để admin phân tích các câu AI bị ảo giác (hallucination) và cải thiện RAG.</div>
+  </div>
+</div>
+
+<h3 class="sub">Kiến trúc Thư mục Frontend tối ưu tái sử dụng</h3>
+<pre class="py">
+frontend/src/
+├── components/          # CHỈ CHỨA REUSABLE COMPONENTS
+│   ├── ui/              # Shadcn/ReUI components (Button, Input, Card, Modal, Toast)
+│   ├── common/          # Tự viết: EmptyState, StatusBadge, PageHeader, ErrorState
+│   └── layouts/         # Layouts (Sidebar, Navbar, Footer)
+├── features/            # FEATURE-BASED MODULES (Code sạch, dễ tìm)
+│   ├── auth/            # Gom nhóm: components, api, types của Auth
+│   ├── chat/            # ChatWindow, MessageBubble, useChat hook
+│   ├── quiz/            # QuestionCard, QuizResult, quiz.api.ts
+│   └── documents/       # UploadZone, DocumentList, doc.types.ts
+├── hooks/               # Global hooks (useAuth, useToast, useDebounce)
+├── lib/                 # Utils (axios config, cn/tailwind merge)
+└── routes/              # Chỉ chứa Pages, gọi component từ /features vào ghép lại
+</pre>
+
+<h3 class="sub">Ví dụ Component Tái sử dụng cao (Code Sạch)</h3>
+<pre class="py">
+/**
+ * src/components/common/AsyncButton.tsx
+ * Nút bấm tự động hiện trạng thái Loading khi hàm onClick là Async.
+ * Giúp code gọn, không cần tự quản lý state `isLoading` ở mọi nơi.
+ */
+import { useState } from "react";
+import { Button, ButtonProps } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+
+interface AsyncButtonProps extends ButtonProps {
+  onClick: () => Promise&lt;void&gt;; // Ép kiểu bắt buộc trả về Promise
+}
+
+export function AsyncButton({ onClick, children, ...props }: AsyncButtonProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    try {
+      setLoading(true);
+      await onClick();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    &lt;Button onClick={handleClick} disabled={loading || props.disabled} {...props}&gt;
+      {loading && &lt;Loader2 className="mr-2 h-4 w-4 animate-spin" /&gt;}
+      {children}
+    &lt;/Button&gt;
+  );
+}
+
+// Cách dùng cực sạch ở mọi Page:
+// &lt;AsyncButton onClick={handleUpload}&gt;Tải lên tài liệu&lt;/AsyncButton&gt;
+</pre>
+
+<div class="note y" style="margin-top:0.75rem;">
+  <strong>Tóm lại:</strong> Việc đồng bộ RAG -> DB là điểm 10 cho kiến trúc. Áp dụng Rate Limiting bảo vệ chi phí, Polling cho UI mượt, Backup/Logging để ngủ ngon, và chia Frontend theo Features (Feature-Sliced Design) + Reusable Components sẽ đáp ứng đúng chuẩn "Code Sạch, Dễ Bảo Trì".
+</div>
+</section>
+
+</main>
+</div>
+
+<footer>
+  Master Blueprint v1.1 — AI Student Assistant &nbsp;·&nbsp;
+  FastAPI + React + Gemini API + Qdrant + PostgreSQL &nbsp;·&nbsp;
+  VPS: 4CPU/8GB/80GB SSD &nbsp;·&nbsp; Ubuntu 24.04 LTS
+</footer>
+</body>
+</html>
+
