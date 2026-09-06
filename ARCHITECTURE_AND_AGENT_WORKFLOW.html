@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyAI — Kiến Trúc Hệ Thống & AI Agent Workflow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f7ff',
+                            100: '#ebf0fe',
+                            500: '#4f46e5',
+                            600: '#4338ca',
+                            700: '#3730a3',
+                        }
+                    }
+                }
+            }
+        }
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #e2e8f0;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .badge-method-get { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-method-post { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-method-patch { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-method-delete { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+
+    <!-- Container -->
+    <div class="max-w-6xl mx-auto space-y-12">
+
+        <!-- Header -->
+        <header class="text-center space-y-4 py-8">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <span class="h-2 w-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                BÁO CÁO KIẾN TRÚC & AI WORKFLOW
+            </div>
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">
+                Hệ Thống Trợ Lý Học Tập <span class="gradient-text">StudyAI</span>
+            </h1>
+            <p class="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto">
+                Tổng quan toàn diện về danh mục API, các hàm xử lý cốt lõi, quy trình tư duy của AI Agent và định hướng phát triển trong tương lai.
+            </p>
+        </header>
+
+        <!-- Section 1: API & Functions Reference -->
+        <section class="space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-100">1. Danh Mục Toàn Bộ API & Core Functions</h2>
+                    <p class="text-xs text-slate-400">Tổ chức theo chuẩn RESTful & Streaming SSE trên nền tảng FastAPI</p>
+                </div>
+            </div>
+
+            <!-- Group 1: Chat Assistant -->
+            <div class="glass-card rounded-2xl p-6 space-y-4 shadow-xl">
+                <h3 class="text-base font-semibold text-indigo-300 flex items-center gap-2">
+                    <span>💬 Module Trợ Lý AI & Hội Thoại</span>
+                    <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">/api/v1/chat</span>
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-xs uppercase text-slate-400 border-b border-slate-800 bg-slate-900/50">
+                            <tr>
+                                <th class="py-3 px-4">Method</th>
+                                <th class="py-3 px-4">Endpoint</th>
+                                <th class="py-3 px-4">Mô tả & Chức năng chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/chat/stream</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans"><strong>Endpoint Chat cốt lõi:</strong> Stream SSE thời gian thực, tự động phân loại ý định (Intent), truy xuất RAG và stream từng token.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/chat/demo/stream</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Chat thử nghiệm không cần đăng nhập cho khách trải nghiệm tại Landing Page.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/chat/conversations</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Lấy danh sách các cuộc hội thoại của sinh viên (hỗ trợ phân trang).</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/chat/conversations/{id}/messages</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Lấy toàn bộ tin nhắn, nguồn trích dẫn RAG (<code>sources</code>) và file đính kèm trong hội thoại.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-delete">DELETE</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/chat/conversations/{id}</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Xóa vĩnh viễn 1 cuộc hội thoại (tự động xóa Cascade toàn bộ tin nhắn con).</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/chat/messages/{id}/feedback</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Tiếp nhận đánh giá 👍 / 👎 của sinh viên để hoàn thiện chất lượng RAG.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Group 2: Documents & Knowledge Base -->
+            <div class="glass-card rounded-2xl p-6 space-y-4 shadow-xl">
+                <h3 class="text-base font-semibold text-emerald-300 flex items-center gap-2">
+                    <span>📚 Module Kho Tài Liệu & Tri Thức</span>
+                    <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">/api/v1/documents</span>
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-xs uppercase text-slate-400 border-b border-slate-800 bg-slate-900/50">
+                            <tr>
+                                <th class="py-3 px-4">Method</th>
+                                <th class="py-3 px-4">Endpoint</th>
+                                <th class="py-3 px-4">Mô tả & Chức năng chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/documents/upload</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Tải lên file (PDF, Word, PPTX, TXT, MD), kích hoạt Background Worker bóc tách text & tạo vector.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/documents/</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Liệt kê tài liệu cá nhân kèm trạng thái xử lý (<code>pending</code>, <code>indexing</code>, <code>ready</code>).</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-delete">DELETE</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/documents/{id}</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Xóa tài liệu (tự động dọn sạch Chunks trong PostgreSQL và Vector trong Qdrant).</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-patch">PATCH</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/documents/{id}</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Cập nhật phân loại môn học (<code>folder</code>), danh mục hoặc nhãn tags.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Group 3: Quiz Assessment -->
+            <div class="glass-card rounded-2xl p-6 space-y-4 shadow-xl">
+                <h3 class="text-base font-semibold text-amber-300 flex items-center gap-2">
+                    <span>🎓 Module Khảo Thí & Tạo Đề Trắc Nghiệm AI</span>
+                    <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">/api/v1/quiz</span>
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-xs uppercase text-slate-400 border-b border-slate-800 bg-slate-900/50">
+                            <tr>
+                                <th class="py-3 px-4">Method</th>
+                                <th class="py-3 px-4">Endpoint</th>
+                                <th class="py-3 px-4">Mô tả & Chức năng chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/generate</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Yêu cầu tạo bộ đề (10-30 câu) từ nhiều tài liệu theo cơ chế Multi-Batch chạy ngầm.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/{id}</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Lấy câu hỏi và 4 lựa chọn (Ẩn đáp án đúng trong quá trình sinh viên làm bài).</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/{id}/submit</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Chấm điểm tự động, lưu lịch sử và hiển thị giải thích chi tiết cho từng câu.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Group 4: Core Python Functions -->
+            <div class="glass-card rounded-2xl p-6 space-y-4 shadow-xl">
+                <h3 class="text-base font-semibold text-purple-300 flex items-center gap-2">
+                    <span>⚙️ Các Hàm Xử Lý Cốt Lõi Tầng Dưới (Core Pipeline)</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <span class="text-indigo-400 font-bold">parse_document(file_path, file_type)</span>
+                        <p class="text-slate-400 font-sans mt-1">Điều hướng bóc tách văn bản đa định dạng (.pdf, .docx, .pptx, .txt) và sửa lỗi mất dấu scan OCR.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <span class="text-emerald-400 font-bold">chunk_text(text, 500, 50)</span>
+                        <p class="text-slate-400 font-sans mt-1">Thuật toán cắt văn bản thành các đoạn 500 từ có độ trượt gối đầu 50 từ chống đứt gãy ngữ cảnh.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <span class="text-amber-400 font-bold">embed_text() / embed_batch()</span>
+                        <p class="text-slate-400 font-sans mt-1">Mã hóa văn bản thành Vector không gian 768 chiều bằng Gemini text-embedding-004.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <span class="text-pink-400 font-bold">ai_gateway.generate_json()</span>
+                        <p class="text-slate-400 font-sans mt-1">Bộ bóc tách JSON đa tầng thông minh, lọc bỏ Thinking Process và tự động vá lỗi token.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: AI Agent Workflow -->
+        <section class="space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                <div class="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-100">2. Quy Trình Vận Hành & Tư Duy Của AI Agent</h2>
+                    <p class="text-xs text-slate-400">Quy trình 4 bước khép kín đảm bảo tính chính xác tuyệt đối và chống ảo giác</p>
+                </div>
+            </div>
+
+            <!-- Mermaid Diagram Card -->
+            <div class="glass-card rounded-2xl p-6 shadow-xl space-y-6">
+                <div class="mermaid text-center">
+                    sequenceDiagram
+                        autonumber
+                        actor SinhVien as Sinh viên
+                        participant Intent as 1. Intent Classifier
+                        participant Retriever as 2. Vector Retriever
+                        participant AI as 3. AI Reasoning Gateway
+                        participant Output as 4. Response & UI
+
+                        SinhVien->>Intent: Gửi câu hỏi / Yêu cầu tạo Quiz
+                        Note over Intent: Phân tích Ý định: Study / Handbook / Quiz
+                        
+                        alt Hỏi đáp kiến thức hoặc Quy chế
+                            Intent->>Retriever: Kích hoạt truy vấn Qdrant
+                            Retriever-->>AI: Top 3-5 đoạn trích phù hợp > 80%
+                            Note over AI: Đối soát tài liệu & Loại bỏ ảo giác
+                            AI-->>Output: Stream SSE + Thẻ Trích Dẫn Nguồn
+                        else Yêu cầu tạo Quiz
+                            Intent->>AI: Chuyển sang Task Generator
+                            AI-->>Output: Hiển thị Thẻ "✦ Bộ Đề Trắc Nghiệm AI"
+                        end
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-800">
+                    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                        <div class="text-xs font-mono font-bold text-indigo-400">BƯỚC 1</div>
+                        <h4 class="text-sm font-semibold text-slate-200">Phân Loại Ý Định</h4>
+                        <p class="text-xs text-slate-400">Xác định câu hỏi thuộc môn học cá nhân, sổ tay quy chế trường hay lệnh tạo đề thi.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                        <div class="text-xs font-mono font-bold text-emerald-400">BƯỚC 2</div>
+                        <h4 class="text-sm font-semibold text-slate-200">Truy Xuất Tri Thức</h4>
+                        <p class="text-xs text-slate-400">Tính khoảng cách Cosine trên Qdrant để lọc ra 3-5 đoạn tài liệu chuẩn xác nhất.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                        <div class="text-xs font-mono font-bold text-amber-400">BƯỚC 3</div>
+                        <h4 class="text-sm font-semibold text-slate-200">Thẩm Định & Tổng Hợp</h4>
+                        <p class="text-xs text-slate-400">AI đọc tài liệu gốc, âm thầm sửa lỗi dấu tiếng Việt và loại bỏ hoàn toàn thông tin bịa đặt.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                        <div class="text-xs font-mono font-bold text-pink-400">BƯỚC 4</div>
+                        <h4 class="text-sm font-semibold text-slate-200">Phản Hồi Tương Tác</h4>
+                        <p class="text-xs text-slate-400">Stream câu trả lời kèm thẻ trích dẫn nguồn văn bản hoặc nút mở đề thi trực tiếp.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Future Roadmap -->
+        <section class="space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                <div class="p-2 rounded-xl bg-pink-500/10 text-pink-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-100">3. Định Hướng Phát Triển Tương Lai (Roadmap)</h2>
+                    <p class="text-xs text-slate-400">Các tính năng nâng cấp chiến lược để mở rộng quy mô đề tài</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card rounded-2xl p-6 space-y-3 shadow-xl">
+                    <div class="text-2xl">🧠</div>
+                    <h3 class="text-base font-bold text-indigo-300">1. Đồ Thị Tri Thức GraphRAG</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Chuyển đổi từ Vector RAG đơn thuần sang <strong>Knowledge Graph RAG</strong>, giúp kết nối mối liên hệ logic giữa các môn học tiên quyết, khái niệm trọng tâm và lộ trình học tập của sinh viên.
+                    </p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 space-y-3 shadow-xl">
+                    <div class="text-2xl">📝</div>
+                    <h3 class="text-base font-bold text-emerald-300">2. Chấm Điểm Tự Luận & Sinh Mindmap</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Tích hợp Tác tử AI chấm điểm bài tự luận, giải thích lỗi sai tư duy logic và tự động vẽ sơ đồ tư duy (Mindmap / Mermaid) tóm tắt toàn bộ chương học.
+                    </p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 space-y-3 shadow-xl">
+                    <div class="text-2xl">🎙️</div>
+                    <h3 class="text-base font-bold text-amber-300">3. Trợ Lý Giọng Nói Thời Gian Thực</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Tích hợp giao tiếp âm thanh hai chiều thông qua WebRTC/Live Audio Stream, giúp sinh viên có thể đối thoại và luyện tập trực tiếp với AI bằng giọng nói.
+                    </p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 space-y-3 shadow-xl">
+                    <div class="text-2xl">🔗</div>
+                    <h3 class="text-base font-bold text-pink-300">4. Tích Hợp Hệ Thống Quản Lý Đào Tạo (LMS)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Kết nối API với các nền tảng Canvas / Moodle của nhà trường để tự động đồng bộ tài liệu môn học, điểm số và thông báo học vụ mới nhất về máy sinh viên.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center py-6 text-xs text-slate-500 border-t border-slate-800">
+            StudyAI Project • Báo cáo Nghiên cứu & Phát triển Hệ thống Trợ lý Học tập Thông minh
+        </footer>
+
+    </div>
+
+</body>
+</html>
