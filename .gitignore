@@ -72,7 +72,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Temporary test scripts
+# Temporary test scripts & folders
+.test/
+*.test.py
 test_*.py
 backend/test_*.py
 patch*.py
@@ -81,6 +83,3 @@ fix*.py
 backend/fix*.py
 list_models.py
 *.cjs
-.env
-.env
-.env
