@@ -1,117 +1,143 @@
 # 🏛️ TỔNG QUAN KIẾN TRÚC HỆ THỐNG & AI AGENT WORKFLOW — STUDYAI
+> **Tài liệu đặc tả kỹ thuật, danh mục API và chu trình tư duy tác tử tự chủ (Autonomous RAG Agent)**  
+> *Đồng bộ hóa 100% với hệ thống mã nguồn thực tế (FastAPI, SQLModel, PostgreSQL 18, Qdrant Vector Engine)*
 
 ---
 
 ## 📌 1. BẢNG TỔNG HỢP TOÀN BỘ API VÀ HÀM XỬ LÝ (BACKEND ENDPOINTS & CORE FUNCTIONS)
 
-Hệ thống Backend FastAPI của StudyAI được tổ chức theo cấu trúc RESTful & Streaming SSE với các Module chức năng sau:
+Toàn bộ Backend FastAPI của StudyAI được tổ chức theo cấu trúc RESTful & Streaming SSE (Server-Sent Events) tại prefix `/api/v1`:
 
-### 1.1. Module Trợ lý AI & Hội thoại (/api/v1/chat)
-| Endpoint / Function | Method | Mô tả & Chức năng chi tiết |
-| :--- | :---: | :--- |
-| /api/v1/chat/stream | POST | **Endpoint Chat cốt lõi**: Phản hồi thời gian thực qua Server-Sent Events (SSE). Tự động phân loại Intent, đối soát RAG và stream từng token. |
-| /api/v1/chat/demo/stream | POST | Endpoint chat thử nghiệm không cần đăng nhập (dành cho khách trải nghiệm nhanh tại Landing Page). |
-| /api/v1/chat/conversations | GET | Lấy danh sách lịch sử các phiên hội thoại của người dùng (hỗ trợ phân trang). |
-| /api/v1/chat/conversations/{id}/messages | GET | Lấy chi tiết toàn bộ tin nhắn, nguồn trích dẫn RAG (sources) và file đính kèm trong 1 cuộc hội thoại. |
-| /api/v1/chat/conversations/{id} | DELETE | Xóa vĩnh viễn 1 cuộc hội thoại (kích hoạt xóa xếp tầng Cascade toàn bộ tin nhắn liên quan). |
-| /api/v1/chat/messages/{id}/feedback | POST | Ghi nhận phản hồi 👍 / 👎 của sinh viên để đánh giá độ chính xác câu trả lời của AI. |
-| /api/v1/chat/messages/{id}/quiz | PATCH | Liên kết mã Quiz ID vào tin nhắn để lưu vết trên giao diện. |
-
----
-
-### 1.2. Module Kho Tài Liệu & Xử Lý Tri Thức (/api/v1/documents)
-| Endpoint / Function | Method | Mô tả & Chức năng chi tiết |
-| :--- | :---: | :--- |
-| /api/v1/documents/upload | POST | Tiếp nhận file (PDF, DOCX, PPTX, TXT, MD), kiểm tra kích thước, lưu file vật lý và kích hoạt Background Task để parse & embed. |
-| /api/v1/documents/ | GET | Liệt kê toàn bộ tài liệu cá nhân của sinh viên kèm trạng thái (pending, indexing, eady, ailed). |
-| /api/v1/documents/{id} | GET / DELETE | Xem chi tiết metadata hoặc xóa tài liệu (tự động xóa Vector trong Qdrant & Chunks trong Postgres). |
-| /api/v1/documents/{id} | PATCH | Cập nhật phân loại môn học (older), danh mục (category) hoặc thẻ (	ags). |
-| /api/v1/documents/{id}/reindex | POST | Tái chỉ mục (Re-index & Re-embed) lại tài liệu khi thay đổi thuật toán chunking. |
+### 1.1. Module Trợ lý AI & Hội thoại (`/api/v1/chat`)
+| Endpoint / Function | Method | Quyền hạn | Mô tả & Chức năng chi tiết |
+| :--- | :---: | :---: | :--- |
+| `/api/v1/chat/stream` | `POST` | User | **Core Chat Engine:** Truyền phát SSE thời gian thực. Tự động kích hoạt bộ phân loại ý định (Intent Classifier), đối soát Vector RAG trên tài liệu người dùng (`docs_user_{id}`) hoặc sổ tay sinh viên (`handbook_shared`), stream từng token về giao diện. |
+| `/api/v1/chat/demo/stream` | `POST` | Public | Endpoint trải nghiệm nhanh tại Landing Page không yêu cầu đăng nhập. Tích hợp Rate-limiting theo IP (tối đa 5 lượt/phút) và đối soát trực tiếp trên kho quy chế `handbook_shared`. |
+| `/api/v1/chat/conversations` | `GET` | User | Lấy danh sách lịch sử hội thoại của sinh viên, sắp xếp giảm dần theo thời gian cập nhật. |
+| `/api/v1/chat/conversations/{id}/messages` | `GET` | User | Lấy toàn bộ lịch sử tin nhắn trong hội thoại, kèm danh sách nguồn trích dẫn RAG (`sources`), file đính kèm (`attachments`) và liên kết bài Quiz (`quiz_id`). |
+| `/api/v1/chat/conversations/{id}` | `DELETE` | User | Xóa vĩnh viễn cuộc hội thoại và kích hoạt xóa xếp tầng (Cascade delete) toàn bộ tin nhắn và đánh giá liên quan. |
+| `/api/v1/chat/messages/{id}/feedback` | `POST` | User | Ghi nhận đánh giá phản hồi (`thumbs_up` / `thumbs_down` kèm `comment`) từ sinh viên để phục vụ kiểm thử và tinh chỉnh RAG. |
+| `/api/v1/chat/messages/{message_id}/quiz` | `PATCH` | User | Liên kết mã `quiz_id` vào tin nhắn trợ lý để lưu vết và kích hoạt nút bấm "🚀 Vào Làm Bài Quiz Ngay" trên giao diện hội thoại. |
 
 ---
 
-### 1.3. Module Khảo Thí & Tạo Đề Trắc Nghiệm AI (/api/v1/quiz)
-| Endpoint / Function | Method | Mô tả & Chức năng chi tiết |
-| :--- | :---: | :--- |
-| /api/v1/quiz/generate | POST | Tiếp nhận yêu cầu tạo bộ đề (10-30 câu) từ 1 hoặc nhiều tài liệu, đẩy vào hàng đợi xử lý ngầm (Background Worker). |
-| /api/v1/quiz/ | GET | Lấy danh sách các bộ đề trắc nghiệm đã tạo. |
-| /api/v1/quiz/{id} | GET | Lấy danh sách câu hỏi của đề thi (Ẩn đáp án đúng khi đang làm bài). |
-| /api/v1/quiz/{id}/submit | POST | Tiếp nhận bài nộp của sinh viên, tự động chấm điểm, tính % chính xác và trả về đáp án chuẩn kèm lời giải chi tiết. |
-| /api/v1/quiz/{id}/attempts | GET | Xem lại lịch sử các lần làm bài và tiến độ ôn tập. |
+### 1.2. Module Kho Tài Liệu & Tri Thức (`/api/v1/documents`)
+| Endpoint / Function | Method | Quyền hạn | Mô tả & Chức năng chi tiết |
+| :--- | :---: | :--- | :--- |
+| `/api/v1/documents/` | `POST` | User | **Tải lên tài liệu:** Nhận file (`pdf`, `docx`, `pptx`, `txt`, `md`), kiểm tra dung lượng (giới hạn 200MB), lưu trữ vật lý vào thư mục `/app/uploads` và kích hoạt Background Worker thực hiện quy trình bóc tách văn bản, chunking và sinh vector. |
+| `/api/v1/documents/` | `GET` | User | Danh sách tài liệu cá nhân của người dùng kèm metadata: tên file, kích thước, phân loại môn học (`folder`), danh mục (`category`), trạng thái (`pending`, `indexing`, `ready`, `failed`). |
+| `/api/v1/documents/{id}` | `GET` | User | Chi tiết trạng thái tài liệu phục vụ cơ chế kiểm tra tiến trình (polling). |
+| `/api/v1/documents/{id}` | `PATCH` | User | Cập nhật phân loại môn học (`folder`), danh mục (`category`), nhãn (`tags`). Khi chuyển đổi danh mục thành `handbook`, tài liệu sẽ tự động được đồng bộ vào bộ sưu tập vector dùng chung `handbook_shared`. |
+| `/api/v1/documents/{id}` | `DELETE` | User | Xóa toàn diện tài liệu: xóa file vật lý trên đĩa cứng, xóa toàn bộ vector chunks khỏi Qdrant (`delete_document_from_qdrant`), xóa các bài thi Quiz liên quan và xóa cascade bảng `documentchunk` trong PostgreSQL. |
+| `/api/v1/documents/{id}/chunks` | `GET` | User | Xem danh sách các phân đoạn văn bản (`chunk_text`, `chunk_index`, `token_count`) đã được trích xuất và lưu trong cơ sở dữ liệu. |
 
 ---
 
-### 1.4. Module Quản Trị Hệ Thống & AI Gateway (/api/v1/admin & /api/v1/admin/ai)
-| Endpoint / Function | Method | Mô tả & Chức năng chi tiết |
-| :--- | :---: | :--- |
-| /api/v1/admin/ai/configs | GET / POST | Quản lý danh sách API Key và Model (Mã hóa AES-256 an toàn trong database). |
-| /api/v1/admin/ai/configs/{id} | PATCH / DELETE | Bật/tắt model hoặc thay đổi độ ưu tiên dự phòng (Priority Fallback 1 $\rightarrow$ 2 $\rightarrow$ 3). |
-| /api/v1/admin/ai/test | POST | Kiểm tra độ trễ (Latency) và kết nối Health-check tới các nhà cung cấp AI (Gemini, NVIDIA, Groq). |
-| /api/v1/admin/dashboard | GET | Thống kê tổng số lượng User, Tài liệu, Chunks, Vector points và lưu lượng hội thoại. |
+### 1.3. Module Khảo Thí & Tạo Đề Trắc Nghiệm AI (`/api/v1/quiz`)
+| Endpoint / Function | Method | Quyền hạn | Mô tả & Chức năng chi tiết |
+| :--- | :---: | :--- | :--- |
+| `/api/v1/quiz/generate` | `POST` | User | Khởi tạo yêu cầu sinh đề trắc nghiệm (10, 20, 30 hoặc 50 câu) từ 1 hoặc nhiều tài liệu học tập cùng lúc. Kích hoạt background task `generate_quiz_background` chia batch thông minh. |
+| `/api/v1/quiz/` | `GET` | User | Lấy danh sách các bộ đề trắc nghiệm của sinh viên theo thứ tự mới nhất. |
+| `/api/v1/quiz/{quiz_id}` | `GET` | User / Public | Lấy thông tin bộ đề kèm số lượng câu hỏi hiện tại đã sinh xong (`current_question_count`) phục vụ hiển thị thanh tiến độ sinh bài thời gian thực. |
+| `/api/v1/quiz/{quiz_id}/questions` | `GET` | User / Public | Lấy danh sách câu hỏi và các lựa chọn A/B/C/D (đáp án đúng và giải thích được ẩn đi khi đang làm bài). |
+| `/api/v1/quiz/{quiz_id}/submit` | `POST` | User | Nộp bài làm trắc nghiệm, hệ thống tự động chấm điểm, tính tỷ lệ phần trăm chính xác, lưu kết quả vào `quiz_attempt` và trả về bảng đáp án kèm lời giải chi tiết từng câu. |
+| `/api/v1/quiz/{quiz_id}/attempts` | `GET` | User | Lịch sử các lần làm bài của sinh viên cho bộ đề này. |
+| `/api/v1/quiz/{quiz_id}/share` | `PATCH` | User | Bật/tắt trạng thái chia sẻ công khai (`is_public`) để bạn bè hoặc sinh viên khác có thể cùng truy cập làm bài qua đường link chia sẻ. |
 
 ---
 
-### 1.5. Các Hàm Xử Lý Cốt Lõi Tầng Dưới (Core Python Pipeline Functions)
-* parse_document(file_path, file_type): Tự động điều hướng đọc file PDF (itz), Word (docx), Slide (pptx) hoặc Text (	xt), chuẩn hóa Unicode và lọc sạch mã rác.
-* chunk_text(text, chunk_size=500, overlap=50): Thuật toán cắt phân đoạn từ có gối đầu để duy trì ngữ cảnh.
-* mbed_text(text) / mbed_batch(texts): Gọi model 	ext-embedding-004 chuyển văn bản thành vector $\mathbb{R}^{768}$.
-* etrieve_from_user_docs() / etrieve_from_handbook(): Tìm kiếm tương đồng Cosine trên Qdrant Engine và kết hợp bộ lọc Metadata.
-* i_gateway.chat() / i_gateway.stream(): Tự động điều phối Fallback thông minh: *Gemini 2.0 Flash* $\rightarrow$ *NVIDIA Nemotron 3.5* $\rightarrow$ *Groq Llama 3.3*.
-* i_gateway.generate_json(): Bộ bóc tách JSON đa tầng thông minh, tự động loại bỏ Thinking Process và tự vá lỗi cắt cụt token.
+### 1.4. Module Quản Trị Hệ Thống & Cấu Hình AI Gateway (`/api/v1/admin` & `/api/v1/admin/ai`)
+| Endpoint / Function | Method | Quyền hạn | Mô tả & Chức năng chi tiết |
+| :--- | :---: | :--- | :--- |
+| `/api/v1/admin/health` | `GET` | Superuser | Kiểm tra sức khỏe toàn diện hệ thống: tải CPU (`psutil.cpu_percent`), mức chiếm dụng RAM, và kiểm tra kết nối API tới từng nhà cung cấp AI. |
+| `/api/v1/admin/feedback` | `GET` | Superuser | Xem danh sách đánh giá phản hồi (👍/👎) từ sinh viên để phát hiện các câu hỏi bị ảo giác thông tin hoặc cần điều chỉnh prompt. |
+| `/api/v1/admin/ai/models` | `GET` / `POST` | Superuser | Quản lý danh sách các mô hình AI: nhà cung cấp (`gemini`, `nvidia`, `groq`), model ID, base URL và lưu trữ API Key mã hóa AES-256 an toàn trong bảng `aimodelconfig`. |
+| `/api/v1/admin/ai/models/{id}` | `PUT` / `DELETE` | Superuser | Cập nhật cấu hình mô hình, bật/tắt kích hoạt (`is_active`), gán cờ embedding (`is_embedding`), thay đổi thứ tự ưu tiên (`priority`), tự động kích hoạt hot-reload trên toàn hệ thống. |
+| `/api/v1/admin/ai/models/{id}/test` | `GET` | Superuser | Gửi lệnh kiểm thử trực tiếp bằng API Key đã giải mã để đo độ trễ và tính khả dụng của provider. |
+| `/api/v1/admin/ai/prompts` | `GET` / `POST` / `DELETE` | Superuser | Quản lý kho System Prompts tùy chỉnh được cấu hình động cho hệ thống. |
+
+---
+
+### 1.5. Module Hồ Sơ Cá Nhân & Xác Thực (`/api/v1/profile`, `/api/v1/users`, `/api/v1/login`)
+| Endpoint / Function | Method | Quyền hạn | Mô tả & Chức năng chi tiết |
+| :--- | :---: | :--- | :--- |
+| `/api/v1/login/access-token` | `POST` | Public | Đăng nhập bằng Email & Password, trả về JWT Token (`OAuth2PasswordRequestForm`). |
+| `/api/v1/users/signup` | `POST` | Public | Đăng ký tài khoản sinh viên mới vào hệ thống. |
+| `/api/v1/profile/me` | `GET` / `PATCH` | User | Xem và cập nhật thông tin tài khoản cá nhân (`full_name`, `email`). |
+| `/api/v1/profile/me/password` | `PATCH` | User | Đổi mật khẩu cá nhân có kiểm tra đối soát mật khẩu cũ. |
+
+---
+
+### 1.6. Các Hàm Xử Lý Cốt Lõi Tầng Dưới (Core Python Pipeline Functions)
+* **`parse_document(file_path: str, file_type: str) -> str`:** Tự động nhận diện định dạng và phân phối tới parser tương ứng: `fitz` (PyMuPDF) cho PDF, `python-docx` cho Word, `python-pptx` cho PowerPoint và đọc plain-text có hỗ trợ tự động xử lý bảng mã tiếng Việt.
+* **`chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[TextChunk]`:** Thuật toán cắt phân đoạn từ trượt với độ dài 500 từ (~650-700 tokens tiếng Việt) và 50 từ gối đầu (overlap) giúp triệt tiêu hiện tượng đứt gãy ngữ cảnh giữa các đoạn liên tiếp.
+* **`embed_text(text: str) -> list[float]`:** Chuyển đổi đoạn văn bản thành vector đặc trưng 768 chiều (thông qua `ai_gateway.embed`).
+* **`retrieve(query, collection_name, top_k=5, score_threshold=0.5)`:** Tìm kiếm vector ngữ nghĩa tương đồng (Cosine Similarity) trên Qdrant Engine với ngưỡng lọc chất lượng tối thiểu.
+* **`ai_gateway.chat()` / `ai_gateway.stream()`:** Lớp cổng điều phối đa tầng: Ưu tiên phân phối tới model chỉ định hoặc duyệt theo chuỗi dự phòng (Fallback Chain: Gemini → NVIDIA → Groq) khi gặp lỗi Rate Limit (429) hoặc Server Error (5xx).
+* **`ai_gateway.generate_json()`:** Hàm sinh dữ liệu JSON có cấu trúc chuyên dụng: tự động loại bỏ thẻ tư duy `<think>...</think>`, bóc tách code block markdown và quét mảng JSON outermost `[...]` chống hiện tượng lỗi token.
 
 ---
 
 ## 🤖 2. QUY TRÌNH HOẠT ĐỘNG CỦA AI AGENT (AI AGENT LIFECYCLE & REASONING FLOW)
 
-AI Agent trong StudyAI không hoạt động như một chatbot hỏi - đáp đơn giản, mà vận hành theo mô hình **Autonomous RAG Agent (Tác tử Tự chủ)** gồm 4 bước khép kín:
+AI Agent trong StudyAI vận hành theo kiến trúc **Autonomous RAG Agent (Tác tử Tự chủ Sinh tăng cường Truy xuất)** gồm 4 giai đoạn khép kín:
 
-`mermaid
+```mermaid
 sequenceDiagram
     autonumber
-    actor Student as Sinh viên
-    participant UI as Giao diện Chat
-    participant IntentRouter as Bộ Phân Loại Ý Định (Intent Classifier)
-    participant Retriever as Công Cụ Tìm Kiếm (Vector Retriever)
-    participant AIGateway as AI Reasoning Gateway
-    participant DB as PostgreSQL & Qdrant
+    actor Student as Sinh viên / Người dùng
+    participant UI as Giao diện Chat (React 19)
+    participant Router as Bộ Phân Loại Ý Định (Intent Classifier)
+    participant Retriever as Bộ Truy Xuất Vector (Qdrant Retriever)
+    participant Gateway as AI Reasoning Gateway
+    participant DB as PostgreSQL 18 & Qdrant
 
-    Student->>UI: Gửi câu hỏi / Yêu cầu tạo Quiz
-    UI->>IntentRouter: POST /api/v1/chat/stream
+    Student->>UI: Gửi câu hỏi hoặc yêu cầu tạo đề thi Quiz
+    UI->>Router: POST /api/v1/chat/stream {message, document_ids, attachments}
     
-    Note over IntentRouter: Bước 1: Intent Routing & Context Analysis
-    IntentRouter->>IntentRouter: Xác định Intent: Study / Handbook / Quiz / General
+    Note over Router: Giai đoạn 1: Phân tích Ý định (Intent Classification)
+    Router->>Router: Keyword Matching -> LLM fallback -> Intent (Study / Handbook / MCQ)
     
-    alt Yêu cầu kiến thức học tập hoặc quy chế
-        IntentRouter->>Retriever: Bước 2: Kích hoạt Vector Retrieval
-        Retriever->>DB: Cosine Similarity Search (Top 3-5 Chunks)
-        DB-->>Retriever: Trả về các đoạn trích dẫn có điểm tương đồng > 80%
-        Retriever->>AIGateway: Bước 3: Đóng gói Context Injection
-        AIGateway->>AIGateway: Lựa chọn Model (Gemini/NVIDIA/Groq) & Thẩm định thông tin
-        AIGateway-->>UI: Bước 4: Stream SSE câu trả lời + Thẻ trích dẫn nguồn
-    else Yêu cầu tạo đề trắc nghiệm (Quiz Intent)
-        IntentRouter->>AIGateway: Chuyển sang Task Generator Engine
-        AIGateway->>DB: Khởi tạo Quiz & Background Worker sinh câu hỏi JSON
-        AIGateway-->>UI: Render Thẻ "Bộ Đề Trắc Nghiệm AI" trực tiếp
+    alt Ý định học tập hoặc tra cứu quy chế (Study / Handbook Intent)
+        Router->>Retriever: Giai đoạn 2: Truy xuất tri thức theo ngữ cảnh
+        Retriever->>DB: Cosine Similarity Search trên collection phù hợp (Top 3-5 Chunks > 0.5)
+        DB-->>Retriever: Trả về danh sách Chunks kèm Score & Metadata
+        Retriever->>Gateway: Giai đoạn 3: Ghép Context & Thẩm định thông tin
+        Gateway->>Gateway: Chọn lọc Model (Gemini/NVIDIA/Groq) & Triệt tiêu ảo giác
+        Gateway-->>UI: Giai đoạn 4: Stream SSE từng token + Thẻ trích dẫn nguồn (Sources)
+    else Ý định tạo đề trắc nghiệm (MCQ / Quiz Intent)
+        Router->>Gateway: Chuyển giao sang Quiz Generation Engine
+        Gateway->>DB: Khởi tạo bản ghi Quiz & Background Worker sinh câu hỏi JSON
+        Gateway-->>UI: Hiển thị Thẻ "✦ Bộ Đề Trắc Nghiệm AI" kèm nút làm bài thi
     end
-`
+```
 
-### Các giai đoạn tư duy của Agent:
-1. **Lắng nghe & Phân loại Ý định (Intent Classification):** Phân tích câu hỏi thuộc lĩnh vực: Hỏi bài tập cá nhân, tra cứu quy chế trường chung, hay yêu cầu tạo bài kiểm tra.
-2. **Truy xuất Tri thức (Context Retrieval):** Tìm kiếm đa miền (Multi-Collection Search) để bốc tách đúng các đoạn văn bản liên quan.
-3. **Thẩm định & Chống Ảo giác (Grounding & Fact-checking):** Đối chiếu câu trả lời với tài liệu gốc, âm thầm chuẩn hóa tiếng Việt và loại bỏ hoàn toàn các thông tin không có căn cứ.
-4. **Phản hồi Tương tác (Actionable Response):** Trả về kết quả kèm các hành động tiếp theo (Nút làm Quiz, Nút sao chép trích dẫn nguồn).
+### Chi tiết 4 giai đoạn tư duy của Agent:
+1. **Lắng nghe & Phân loại Ý định (Intent Classification):**
+   * *Bước 1:* Quét nhanh qua từ điển từ khóa tiếng Việt (`HANDBOOK_KEYWORDS`, `MCQ_KEYWORDS`).
+   * *Bước 2:* Nếu không khớp từ khóa, gọi mô hình LLM với nhiệt độ T=0.0 và giới hạn 10 tokens để phân loại chính xác ý định người dùng.
+   * *Bước 3:* Tự động điều hướng câu hỏi về kho dữ liệu phù hợp: tài liệu người dùng (`answer_from_user_docs`), sổ tay dùng chung (`answer_from_handbook`), hoặc chế độ tự chủ toàn kho (`answer_autonomous`).
+2. **Truy xuất Tri thức Đa miền (Context Retrieval):**
+   * Vector hóa câu hỏi thành không gian tọa độ 768 chiều.
+   * Thực hiện phép đo khoảng cách Cosine trên Qdrant Engine với cấu trúc đồ thị đa tầng HNSW để trích xuất 3 đến 5 đoạn văn bản có độ tương đồng cao nhất.
+3. **Thẩm định & Chống Ảo giác (Grounding & Fact-checking):**
+   * Hệ thống đóng gói System Prompt nghiêm ngặt, ràng buộc AI chỉ được tổng hợp câu trả lời dựa trên tài liệu được cung cấp. Nếu tài liệu không chứa dữ liệu cần thiết, AI bắt buộc phải trả lời trung thực: *"Tài liệu không đề cập đến vấn đề này"*.
+   * Tự động điều chỉnh ngữ pháp và sửa lỗi mất dấu scan OCR từ tài liệu gốc.
+4. **Phản hồi Tương tác (Actionable Response):**
+   * Phản hồi dạng Stream SSE giúp giảm tối đa độ trễ hiển thị (Time to First Token < 0.9s).
+   * Đi kèm thẻ trích dẫn nguồn có thể mở rộng (tên file, đoạn số mấy, điểm tương đồng %) và nút bấm làm Quiz trực tiếp nếu người dùng yêu cầu bài kiểm tra.
 
 ---
 
 ## 🚀 3. ĐỊNH HƯỚNG PHÁT TRIỂN TƯƠNG LAI (FUTURE ROADMAP)
 
-Để phát triển đề tài lên tầm cao mới, hệ thống định hướng nâng cấp các trụ cột sau:
+Hệ thống StudyAI được hoạch định mở rộng theo 4 trụ cột công nghệ chiến lược:
 
 1. **Ứng dụng GraphRAG (Knowledge Graph RAG):**
-   * Xây dựng Đồ thị Tri thức kết nối mối quan hệ giữa các môn học tiên quyết, khái niệm trọng tâm trong toàn bộ chương trình đào tạo đại học.
+   * Tích hợp cơ sở dữ liệu đồ thị tri thức (Neo4j) để mô hình hóa cây quan hệ giữa các môn học tiên quyết, khái niệm cốt lõi và lộ trình đào tạo theo từng chuyên ngành.
 2. **Tác tử Chấm điểm Tự luận & Phân tích Sơ đồ Tư duy (Mindmap Agent):**
-   * AI tự động phân tích bài giải tự luận của sinh viên, chỉ ra lỗi sai logic và sinh sơ đồ tư duy (Mindmap/Mermaid) tóm tắt cả chương học.
-3. **Tích hợp Trợ lý Giọng nói (Voice AI Assistant):**
-   * Cho phép sinh viên hỏi đáp bằng giọng nói tự nhiên thông qua WebRTC/Live Audio Stream.
-4. **Mở rộng Hệ sinh thái Nhà trường (LMS / Canvas / Moodle Integration):**
-   * Đồng bộ tự động bài giảng, điểm số và thông báo từ hệ thống đào tạo của trường học.
+   * Xây dựng Agent chuyên trách đọc bài làm tự luận của sinh viên, chỉ ra các bước sai sót trong chuỗi suy luận logic và tự động sinh mã Mermaid / Mindmap trực quan tóm tắt toàn bộ bài học.
+3. **Trợ lý Hội thoại Giọng nói Thời Gian Thực (Voice AI Tutor):**
+   * Tích hợp WebRTC và Live Audio Streaming cho phép sinh viên trực tiếp hỏi đáp, luyện tập phỏng vấn chuyên ngành hoặc thuyết trình bằng giọng nói tự nhiên.
+4. **Tích hợp Hệ sinh thái Quản lý Đào tạo Nhà trường (LMS / Canvas / Moodle):**
+   * Kết nối cổng API LTI (Learning Tools Interoperability) để tự động đồng bộ bài giảng, lịch thi và kết quả làm Quiz vào hệ thống quản lý học tập chính thức của nhà trường.

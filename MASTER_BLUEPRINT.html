@@ -192,15 +192,13 @@ footer{padding:2rem 3rem;color:var(--muted);font-size:0.75rem;border-top:1px sol
 <section id="decisions">
 <h2 class="section"><span class="icon">✅</span> Decisions đã chốt — Không thay đổi</h2>
 
-<div class="decided"><strong>AI:</strong> Gemini 2.0 Flash (chính) → NVIDIA Build (fallback 1) → Groq (fallback 2). Không Dify.</div>
-<div class="decided"><strong>RAG:</strong> Tự build với Qdrant client trực tiếp (không LlamaIndex). Gemini text-embedding-004 cho embedding.</div>
-<div class="decided"><strong>Intent Routing:</strong> Hybrid — keyword-first → LLM fallback → default Study RAG.</div>
-<div class="decided"><strong>MCQ:</strong> Tối đa 50 câu (10/20/30/50). Lưu DB 7 ngày. A/B/C/D + đáp án + giải thích.</div>
-<div class="decided"><strong>UI Libraries:</strong> ReUI (components) + Lucide (icons) + UIverse (effects/animations).</div>
-<div class="decided"><strong>Admin Portal:</strong> Có. Quản lý sổ tay SV + users + analytics.</div>
-<div class="decided"><strong>RAG Collections:</strong> 2 loại — <code>docs_user_{id}</code> (personal) + <code>handbook_shared</code> (sổ tay SV).</div>
-<div class="decided"><strong>VPS:</strong> 4 CPU / 8GB RAM / 80GB SSD / Ubuntu 24.04 LTS. Đủ dư.</div>
-<div class="decided"><strong>Upload limit:</strong> 200MB/user. File types: PDF, DOCX, TXT, PPTX.</div>
+<div class="decided"><strong>AI Gateway:</strong> Điều phối động qua Database (mã hóa AES-256) hoặc .env: NVIDIA Nemotron 3.5 / Gemini 2.0 Flash / Groq Llama 3.3. Tự động dự phòng thông minh (Fallback) khi gặp lỗi 429/5xx. Không dùng Dify.</div>
+<div class="decided"><strong>RAG:</strong> Tự phát triển với Qdrant Client trực tiếp (không LlamaIndex), lưu trữ vector ngữ nghĩa 768 chiều. PostgreSQL lưu trữ toàn bộ văn bản gốc và DocumentChunks (Source of Truth).</div>
+<div class="decided"><strong>Intent Routing:</strong> Hybrid — Từ khóa nhanh (Keyword-first) → Phân loại LLM nhiệt độ 0.0 → Tự động điều phối (Study / Handbook / MCQ / Autonomous).</div>
+<div class="decided"><strong>MCQ / Quiz:</strong> Đa dạng 10/20/30/50 câu từ 1 hoặc nhiều tài liệu (Multi-Batch). Tự động chấm điểm, tính tỷ lệ %, lưu attempt và chia sẻ công khai qua liên kết.</div>
+<div class="decided"><strong>Admin & AI Management:</strong> Quản lý AI Models, kiểm thử độ trễ API, quản lý System Prompts động, quản lý phản hồi người dùng (👍/👎) và thống kê hệ thống.</div>
+<div class="decided"><strong>RAG Collections:</strong> 2 loại — <code>docs_user_{id}</code> (tài liệu cá nhân sinh viên) + <code>handbook_shared</code> (sổ tay quy chế chung toàn trường).</div>
+<div class="decided"><strong>Upload & Định dạng:</strong> Giới hạn 200MB/file. Hỗ trợ tự động: PDF, DOCX, PPTX, TXT, MD. Phân loại theo thư mục môn học (<code>folder</code>) và nhãn (<code>tags</code>).</div>
 </section>
 
 <!-- ════════════════════════════════════════

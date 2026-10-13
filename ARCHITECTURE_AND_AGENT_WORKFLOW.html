@@ -172,7 +172,17 @@
                             <tr>
                                 <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-patch">PATCH</span></td>
                                 <td class="py-3 px-4 text-slate-200 font-semibold">/documents/{id}</td>
-                                <td class="py-3 px-4 text-slate-300 font-sans">Cập nhật phân loại môn học (<code>folder</code>), danh mục hoặc nhãn tags.</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Cập nhật phân loại môn học (<code>folder</code>), danh mục hoặc nhãn tags. Chuyển thành handbook sẽ tự động sync sang <code>handbook_shared</code>.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-delete">DELETE</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/documents/{id}</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Xóa tài liệu toàn diện: xóa file vật lý, xóa chunks trong DB và xóa vector trong Qdrant.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/documents/{id}/chunks</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Xem danh sách phân đoạn văn bản và số lượng token trích xuất trong DB.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -198,17 +208,37 @@
                             <tr>
                                 <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
                                 <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/generate</td>
-                                <td class="py-3 px-4 text-slate-300 font-sans">Yêu cầu tạo bộ đề (10-30 câu) từ nhiều tài liệu theo cơ chế Multi-Batch chạy ngầm.</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Khởi tạo tạo đề trắc nghiệm (10-50 câu) từ 1 hoặc nhiều tài liệu theo cơ chế Multi-Batch ngầm.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Lấy danh sách các bộ đề trắc nghiệm của sinh viên.</td>
                             </tr>
                             <tr>
                                 <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
                                 <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/{id}</td>
-                                <td class="py-3 px-4 text-slate-300 font-sans">Lấy câu hỏi và 4 lựa chọn (Ẩn đáp án đúng trong quá trình sinh viên làm bài).</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Lấy thông tin bộ đề kèm số câu hỏi đã sinh xong (<code>current_question_count</code>) phục vụ hiển thị tiến độ.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/{id}/questions</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Lấy câu hỏi và 4 lựa chọn (ẩn đáp án đúng khi sinh viên đang làm bài).</td>
                             </tr>
                             <tr>
                                 <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-post">POST</span></td>
                                 <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/{id}/submit</td>
-                                <td class="py-3 px-4 text-slate-300 font-sans">Chấm điểm tự động, lưu lịch sử và hiển thị giải thích chi tiết cho từng câu.</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Chấm điểm tự động, lưu kết quả và hiển thị giải thích chi tiết cho từng câu.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-get">GET</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/{id}/attempts</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Lịch sử các lần làm bài của sinh viên cho bộ đề này.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4"><span class="px-2.5 py-1 rounded font-bold badge-method-patch">PATCH</span></td>
+                                <td class="py-3 px-4 text-slate-200 font-semibold">/quiz/{id}/share</td>
+                                <td class="py-3 px-4 text-slate-300 font-sans">Bật/tắt chế độ chia sẻ công khai (<code>is_public</code>) để bạn bè cùng làm bài qua link chia sẻ.</td>
                             </tr>
                         </tbody>
                     </table>
